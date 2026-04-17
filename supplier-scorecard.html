@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supplier Scorecard Dashboard — The Honest Stand</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#050505;--card:#0a0a0a;--border:#1a1a1a;--text:#ccc;--text2:#888;--text3:#555;--green:#22c55e;--green-bg:#052e16;--yellow:#eab308;--yellow-bg:#422006;--red:#ef4444;--red-bg:#450a0a;--accent:#0ea5e9;--accent2:#6366f1}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.mono{font-family:'JetBrains Mono',monospace}
+.container{max-width:1280px;margin:0 auto;padding:20px 16px}
+.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;flex-wrap:wrap;gap:16px}
+.header h1{font-size:24px;font-weight:800;color:#f0f0f0;letter-spacing:-.02em}
+.header .sub{font-size:11px;color:var(--text3);margin-top:2px}
+.eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:.15em;color:var(--text3);font-weight:600;margin-bottom:2px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.filter-btn{padding:6px 14px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif}
+.filter-btn:hover{border-color:#333;color:var(--text)}
+.filter-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(14,165,233,.08)}
+.filter-select{padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;max-width:220px}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:20px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.kpi .label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:600;margin-bottom:4px}
+.kpi .value{font-size:28px;font-weight:800;letter-spacing:-.02em}
+.kpi .detail{font-size:11px;color:var(--text3);margin-top:2px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+@media(max-width:800px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;overflow:hidden}
+.panel-title{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:12px;text-transform:uppercase;letter-spacing:.06em}
+.panel-full{grid-column:1/-1}
+.metric-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.metric-bar-label{font-size:11px;color:var(--text2);width:80px;flex-shrink:0;text-align:right}
+.metric-bar-track{flex:1;height:20px;background:#111;border-radius:4px;overflow:hidden;display:flex}
+.metric-bar-seg{height:100%;transition:width .3s}
+.metric-bar-val{font-size:11px;color:var(--text);width:36px;text-align:right;flex-shrink:0}
+.s-table{width:100%;border-collapse:collapse}
+.s-table th{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);font-weight:700;text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;white-space:nowrap}
+.s-table th:hover{color:var(--text)}
+.s-table td{font-size:12px;padding:7px 8px;border-bottom:1px solid #111}
+.s-table tr:hover td{background:#111}
+.s-table .sort-arrow{font-size:9px;margin-left:3px;opacity:.5}
+.chip{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.chip-a{background:var(--green-bg);color:var(--green)}
+.chip-b{background:var(--yellow-bg);color:var(--yellow)}
+.chip-c{background:var(--red-bg);color:var(--red)}
+.chip-3{color:var(--green)}.chip-2{color:var(--yellow)}.chip-1{color:var(--red)}
+.spark{display:inline-block;vertical-align:middle}
+.rf-row{display:grid;grid-template-columns:1.5fr 1fr 1fr 2fr;gap:4px;padding:6px 0;border-bottom:1px solid #111;font-size:12px;align-items:center}
+.rf-row:first-child{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);font-weight:700;border-bottom:1px solid var(--border)}
+.month-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.month-label{width:36px;font-size:12px;color:var(--text2);font-weight:600;flex-shrink:0}
+.month-bar{height:24px;border-radius:4px;display:flex;align-items:center;padding:0 8px;font-size:11px;font-weight:700;color:#fff;min-width:30px;transition:width .4s}
+.scroll-y{max-height:400px;overflow-y:auto}
+.scroll-y::-webkit-scrollbar{width:4px}
+.scroll-y::-webkit-scrollbar-track{background:transparent}
+.scroll-y::-webkit-scrollbar-thumb{background:#333;border-radius:2px}
+.loading{display:flex;align-items:center;justify-content:center;height:60vh;flex-direction:column;gap:12px}
+.loading .spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.refresh-btn{padding:4px 10px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text3);font-size:10px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s}
+.refresh-btn:hover{border-color:var(--accent);color:var(--accent)}
+.status-dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:4px}
+</style>
+</head>
+<body>
+<div class="container" id="app">
+  <div class="loading">
+    <div class="spinner"></div>
+    <div style="font-size:13px;color:var(--text3)">Loading scorecard data from Google Sheets...</div>
+  </div>
+</div>
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbykedrN5xI2FfWGr5_5WUgdfAXUMdd1xFw4_ZcbWrUpLCoerHIs02ETrKFHFYc4Bu6l-g/exec";
+const METRICS = [
+  {key:"ot",label:"On-Time",w:25,col:-1},
+  {key:"pr",label:"Pricing",w:20,col:-1},
+  {key:"qu",label:"Quality",w:20,col:-1},
+  {key:"co",label:"Comms",w:15,col:-1},
+  {key:"docs",label:"Docs",w:10,col:-1},
+  {key:"ac",label:"Accuracy",w:10,col:-1}
+];
+
+let DATA = [];
+let state = { month: "All", supplier: "All", sort: "ws", sortDir: -1, lastFetch: null };
+
+async function fetchData() {
+  try {
+    const resp = await fetch(API_URL, { redirect: 'follow' });
+    const text = await resp.text();
+    let json;
+    try {
+      json = JSON.parse(text);
+    } catch(e) {
+      const match = text.match(/\[[\s\S]*\]/);
+      if (match) json = JSON.parse(match[0]);
+      else throw new Error("Unexpected response: " + text.slice(0, 200));
+    }
+    if (!json || !json.length) throw new Error("No scored POs returned (" + text.slice(0,100) + ")");
+    
+    DATA = json.map(r => ({
+      month: r.m,
+      po: r.po,
+      s: r.s,
+      desc: r.desc,
+      dest: r.dest,
+      d: r.d,
+      ot: r.ot,
+      pr: r.pr,
+      qu: r.qu,
+      co: r.co,
+      docs: r.docs,
+      ac: r.ac,
+      ws: r.ws,
+      t: r.t,
+    }));
+    
+    state.lastFetch = new Date();
+    render();
+  } catch (err) {
+    console.error("Fetch error:", err);
+    document.getElementById("app").innerHTML = `
+      <div class="loading">
+        <div style="color:var(--red);font-size:14px;font-weight:600">Failed to load data</div>
+        <div style="color:var(--text3);font-size:12px;max-width:400px;text-align:center">
+          ${err.message}<br><br>
+          Check that the Apps Script Web App is deployed (Deploy → Manage deployments) and set to "Anyone" access.
+          <br><br>
+          <button class="refresh-btn" onclick="fetchData()" style="font-size:12px;padding:8px 16px">Retry</button>
+        </div>
+      </div>`;
+  }
+}
+
+// ── Dashboard Logic (same as before) ──
+function getFiltered() {
+  return DATA.filter(r => {
+    if (state.month !== "All" && r.month !== state.month) return false;
+    if (state.supplier !== "All" && r.s !== state.supplier) return false;
+    return true;
+  });
+}
+
+function getSupplierSummaries(rows) {
+  const map = {};
+  rows.forEach(r => {
+    if (!map[r.s]) map[r.s] = { name: r.s, scores: [], pos: 0, metrics: {}, months: {} };
+    const s = map[r.s];
+    s.scores.push(r.ws); s.pos++;
+    METRICS.forEach(m => { if (!s.metrics[m.key]) s.metrics[m.key] = []; s.metrics[m.key].push(r[m.key]); });
+    if (!s.months[r.month]) s.months[r.month] = [];
+    s.months[r.month].push(r.ws);
+  });
+  return Object.values(map).map(s => {
+    const avg = s.scores.reduce((a,b)=>a+b,0)/s.scores.length;
+    const metricAvgs = {};
+    METRICS.forEach(m => { const v = s.metrics[m.key]; metricAvgs[m.key] = v.length ? v.reduce((a,b)=>a+b,0)/v.length : 0; });
+    const monthAvgs = {};
+    Object.entries(s.months).forEach(([m,v]) => monthAvgs[m] = v.reduce((a,b)=>a+b,0)/v.length);
+    return { ...s, avg: Math.round(avg*100)/100, tier: avg >= 2.5 ? "A" : avg >= 1.8 ? "B" : "C", metricAvgs, monthAvgs };
+  });
+}
+
+function tierChip(t) { return `<span class="chip chip-${t.toLowerCase()}">${t}</span>`; }
+function scoreColor(v) { return v >= 2.8 ? "var(--green)" : v >= 2.2 ? "var(--yellow)" : "var(--red)"; }
+function metricChip(v) { const r = Math.round(v*100)/100; return `<span class="mono ${r>=2.8?'chip-3':r>=2.2?'chip-2':'chip-1'}" style="font-size:12px;font-weight:700">${r.toFixed(2)}</span>`; }
+
+function sparkSVG(monthAvgs) {
+  const allMonths = [...new Set(DATA.map(r=>r.month))].sort((a,b)=>{
+    const order={Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+    return (order[a]||0)-(order[b]||0);
+  });
+  const pts = allMonths.map(m => monthAvgs[m] || null).filter(v => v !== null);
+  if (pts.length < 2) return "";
+  const w=48,h=18,pad=2,min=1,max=3;
+  const coords = pts.map((v,i) => `${pad+(i/(pts.length-1))*(w-pad*2)},${pad+(1-(v-min)/(max-min))*(h-pad*2)}`);
+  const color = pts[pts.length-1] >= 2.5 ? "var(--green)" : pts[pts.length-1] >= 1.8 ? "var(--yellow)" : "var(--red)";
+  return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline points="${coords.join(" ")}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+
+function sortArrow(key) {
+  if (state.sort !== key) return '<span class="sort-arrow">↕</span>';
+  return `<span class="sort-arrow" style="opacity:1">${state.sortDir === 1 ? '↑' : '↓'}</span>`;
+}
+
+function render() {
+  const filtered = getFiltered();
+  const summaries = getSupplierSummaries(filtered);
+  
+  summaries.sort((a, b) => {
+    let va, vb;
+    if (state.sort === "name") { va = a.name.toLowerCase(); vb = b.name.toLowerCase(); return state.sortDir * (va < vb ? -1 : va > vb ? 1 : 0); }
+    if (state.sort === "pos") { va = a.pos; vb = b.pos; }
+    else if (METRICS.find(m => m.key === state.sort)) { va = a.metricAvgs[state.sort]; vb = b.metricAvgs[state.sort]; }
+    else { va = a.avg; vb = b.avg; }
+    return state.sortDir * ((va||0) - (vb||0));
+  });
+
+  const totalPOs = filtered.length;
+  const avgScore = totalPOs ? (filtered.reduce((a,r)=>a+r.ws,0)/totalPOs).toFixed(2) : "-";
+  const tiers = {A:0,B:0,C:0};
+  summaries.forEach(s => tiers[s.tier]++);
+  const redFlags = filtered.filter(r => [r.ot,r.pr,r.qu,r.co,r.docs,r.ac].some(v => v === 1)).length;
+  const perfect = filtered.filter(r => r.ws === 3).length;
+  const allSuppliers = [...new Set(DATA.map(r => r.s))].sort();
+  
+  const allMonths = [...new Set(DATA.map(r=>r.month))].sort((a,b)=>{
+    const order={Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+    return (order[a]||0)-(order[b]||0);
+  });
+
+  const metricDist = {};
+  METRICS.forEach(m => {
+    const vals = filtered.map(r => r[m.key]);
+    const g = vals.filter(v=>v===3).length, y = vals.filter(v=>v===2).length, r = vals.filter(v=>v===1).length;
+    const total = vals.length || 1;
+    metricDist[m.key] = {g,y,r,total,avg:(vals.reduce((a,b)=>a+b,0)/total).toFixed(2)};
+  });
+
+  const monthData = allMonths.map(m => {
+    const rows = filtered.filter(r => r.month === m);
+    return { month: m, avg: rows.length ? rows.reduce((a,r)=>a+r.ws,0)/rows.length : null, count: rows.length };
+  }).filter(d => d.avg !== null);
+
+  const rfPOs = filtered.filter(r => [r.ot,r.pr,r.qu,r.co,r.docs,r.ac].some(v => v === 1))
+    .map(r => ({ supplier: r.s, po: r.po, month: r.month, reds: METRICS.filter(m => r[m.key] === 1).map(m => m.label), ws: r.ws }))
+    .sort((a,b) => a.ws - b.ws);
+
+  const fetchTime = state.lastFetch ? state.lastFetch.toLocaleTimeString() : "";
+
+  document.getElementById("app").innerHTML = `
+    <div class="header">
+      <div>
+        <div class="eyebrow">The Honest Stand · Supply Chain</div>
+        <h1>Supplier Scorecard Dashboard</h1>
+        <div class="sub">
+          <span class="status-dot" style="background:var(--green)"></span>Live from Google Sheets · Updated ${fetchTime} · ${summaries.length} suppliers · ${totalPOs} scored POs
+          <button class="refresh-btn" onclick="fetchData()" style="margin-left:8px">↻ Refresh</button>
+        </div>
+      </div>
+      <div class="filters">
+        ${["All",...allMonths].map(m => `<button class="filter-btn ${state.month===m?'active':''}" onclick="setMonth('${m}')">${m==="All"?"All Months":m}</button>`).join("")}
+        <select class="filter-select" onchange="setSupplier(this.value)">
+          <option value="All">All Suppliers</option>
+          ${allSuppliers.map(s => `<option value="${s}" ${state.supplier===s?'selected':''}>${s}</option>`).join("")}
+        </select>
+        ${state.supplier !== "All" ? `<button class="filter-btn" onclick="setSupplier('All')" style="color:var(--red);border-color:var(--red)">✕ Clear</button>` : ""}
+      </div>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi"><div class="label">Avg Score</div><div class="value mono" style="color:${scoreColor(+avgScore)}">${avgScore}</div><div class="detail">across ${totalPOs} POs</div></div>
+      <div class="kpi"><div class="label">Tier A · Preferred</div><div class="value mono" style="color:var(--green)">${tiers.A}</div><div class="detail">${summaries.length?Math.round(tiers.A/summaries.length*100):0}% of suppliers</div></div>
+      <div class="kpi"><div class="label">Tier B · Approved</div><div class="value mono" style="color:var(--yellow)">${tiers.B}</div><div class="detail">${summaries.length?Math.round(tiers.B/summaries.length*100):0}% of suppliers</div></div>
+      <div class="kpi"><div class="label">Tier C · Review</div><div class="value mono" style="color:var(--red)">${tiers.C}</div><div class="detail">action required</div></div>
+      <div class="kpi"><div class="label">Red Flags</div><div class="value mono" style="color:var(--red)">${redFlags}</div><div class="detail">POs with any score of 1</div></div>
+      <div class="kpi"><div class="label">Perfect (3.00)</div><div class="value mono" style="color:var(--green)">${perfect}</div><div class="detail">${totalPOs?Math.round(perfect/totalPOs*100):0}% of POs</div></div>
+    </div>
+
+    <div class="grid">
+      <div class="panel">
+        <div class="panel-title">Metric Performance (Green / Yellow / Red)</div>
+        ${METRICS.map(m => { const d = metricDist[m.key]; const gp=(d.g/d.total*100).toFixed(1),yp=(d.y/d.total*100).toFixed(1),rp=(d.r/d.total*100).toFixed(1);
+          return `<div class="metric-bar-row"><span class="metric-bar-label">${m.label} <span class="mono" style="font-size:10px;color:var(--text3)">${m.w}%</span></span><div class="metric-bar-track"><div class="metric-bar-seg" style="width:${gp}%;background:var(--green)"></div><div class="metric-bar-seg" style="width:${yp}%;background:var(--yellow)"></div><div class="metric-bar-seg" style="width:${rp}%;background:var(--red)"></div></div><span class="metric-bar-val mono">${d.avg}</span></div>`;
+        }).join("")}
+      </div>
+      <div class="panel">
+        <div class="panel-title">Monthly Avg Score</div>
+        ${monthData.map(d => { const pct=((d.avg-1)/2*100).toFixed(0); const color=d.avg>=2.5?"var(--green)":d.avg>=1.8?"var(--yellow)":"var(--red)";
+          return `<div class="month-row"><span class="month-label">${d.month}</span><div class="month-bar" style="width:${pct}%;background:${color}">${d.avg.toFixed(2)}</div><span style="font-size:11px;color:var(--text3)">${d.count} POs</span></div>`;
+        }).join("")}
+        ${state.month==="All"&&monthData.length>=2?`<div style="margin-top:12px;font-size:11px;color:var(--text3)">Trend: ${monthData[monthData.length-1].avg>=monthData[0].avg?'<span style="color:var(--green)">↑ Improving</span>':'<span style="color:var(--red)">↓ Declining</span>'} from ${monthData[0].month} to ${monthData[monthData.length-1].month}</div>`:""}
+      </div>
+      <div class="panel" style="${rfPOs.length===0?'opacity:.5':''}">
+        <div class="panel-title" style="color:var(--red)">Red Flags (${rfPOs.length} POs)</div>
+        <div class="scroll-y" style="max-height:250px">
+          ${rfPOs.length===0?'<div style="font-size:12px;color:var(--text3);padding:16px 0">No red flags in selection</div>':""}
+          <div class="rf-row"><span>Supplier</span><span>PO #</span><span>Month</span><span>Red Metrics</span></div>
+          ${rfPOs.slice(0,40).map(r=>`<div class="rf-row"><span style="color:var(--text);cursor:pointer" onclick="setSupplier('${r.supplier.replace(/'/g,"\\'")}')">${r.supplier.length>22?r.supplier.slice(0,20)+'…':r.supplier}</span><span class="mono" style="color:var(--text2)">${r.po}</span><span style="color:var(--text3)">${r.month}</span><span>${r.reds.map(x=>'<span style="color:var(--red);font-size:11px;font-weight:600">'+x+'</span>').join(', ')}</span></div>`).join("")}
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Suppliers Needing Attention</div>
+        <div class="scroll-y" style="max-height:250px">
+          ${summaries.filter(s=>s.avg<2.85).sort((a,b)=>a.avg-b.avg).slice(0,12).map(s=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #111;cursor:pointer" onclick="setSupplier('${s.name.replace(/'/g,"\\'")}')"><div><span style="font-size:12px;color:var(--text)">${s.name}</span><span style="font-size:10px;color:var(--text3);margin-left:6px">${s.pos} POs</span></div><div style="display:flex;align-items:center;gap:8px">${sparkSVG(s.monthAvgs)}<span class="mono" style="font-size:13px;font-weight:700;color:${scoreColor(s.avg)}">${s.avg.toFixed(2)}</span>${tierChip(s.tier)}</div></div>`).join("")}
+        </div>
+      </div>
+    </div>
+
+    <div class="panel panel-full">
+      <div class="panel-title">All Suppliers (${summaries.length})</div>
+      <div class="scroll-y" style="max-height:500px">
+        <table class="s-table"><thead><tr>
+          <th onclick="toggleSort('name')">Supplier${sortArrow('name')}</th>
+          <th onclick="toggleSort('pos')" style="text-align:center">POs${sortArrow('pos')}</th>
+          ${METRICS.map(m=>`<th onclick="toggleSort('${m.key}')" style="text-align:center">${m.label}${sortArrow(m.key)}</th>`).join("")}
+          <th onclick="toggleSort('ws')" style="text-align:center">Score${sortArrow('ws')}</th>
+          <th onclick="toggleSort('ws')" style="text-align:center">Tier${sortArrow('ws')}</th>
+          <th style="text-align:center">Trend</th>
+        </tr></thead><tbody>
+          ${summaries.map(s=>`<tr style="cursor:pointer" onclick="setSupplier('${s.name.replace(/'/g,"\\'")}')"><td style="font-weight:600;color:var(--text)">${s.name}</td><td style="text-align:center" class="mono">${s.pos}</td>${METRICS.map(m=>`<td style="text-align:center">${metricChip(s.metricAvgs[m.key])}</td>`).join("")}<td style="text-align:center"><span class="mono" style="font-size:13px;font-weight:800;color:${scoreColor(s.avg)}">${s.avg.toFixed(2)}</span></td><td style="text-align:center">${tierChip(s.tier)}</td><td style="text-align:center">${sparkSVG(s.monthAvgs)}</td></tr>`).join("")}
+        </tbody></table>
+      </div>
+    </div>`;
+}
+
+function toggleSort(key) { if (state.sort===key) state.sortDir*=-1; else {state.sort=key;state.sortDir=key==='name'?1:-1;} render(); }
+function setMonth(m) { state.month=m; render(); }
+function setSupplier(s) { state.supplier=s; render(); }
+
+// Initial load
+fetchData();
+</script>
+</body>
+</html>
