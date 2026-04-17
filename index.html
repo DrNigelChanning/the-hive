@@ -487,7 +487,7 @@
         </div>
         <span class="tool-arrow">↗</span>
       </a>
-      <a class="tool-card fade-in" href="#" style="--card-accent: #e8ff47;">
+      <a class="tool-card fade-in" href="https://fishbowl.bolderfoods.com" target="_blank" style="--card-accent: #e8ff47;">
         <div class="tool-header">
           <div class="tool-icon" style="background: rgba(232,255,71,0.1);">🐟</div>
           <span class="tool-badge badge-live">Live</span>
@@ -515,7 +515,7 @@
         </div>
         <span class="tool-arrow">↗</span>
       </a>
-      <a class="tool-card fade-in" href="#" style="--card-accent: #f0a500;">
+      <a class="tool-card fade-in" href="https://labels.bolderfoods.com" target="_blank" style="--card-accent: #f0a500;">
         <div class="tool-header">
           <div class="tool-icon" style="background: rgba(240,165,0,0.1);">🏷️</div>
           <span class="tool-badge badge-dev">In Dev</span>
@@ -645,20 +645,4 @@
     const q = document.getElementById('search').value.toLowerCase();
     document.querySelectorAll('.tool-card').forEach(card => {
       const text = card.textContent.toLowerCase();
-      card.style.display = text.includes(q) ? '' : 'none';
-    });
-    document.querySelectorAll('.sop-card').forEach(card => {
-      const text = card.textContent.toLowerCase();
-      card.style.display = text.includes(q) ? '' : 'none';
-    });
-  }
-  // ─── TOOL COUNT ───
-  const liveCount = document.querySelectorAll('.badge-live').length;
-  document.getElementById('tool-count').textContent = liveCount + '+';
-  // ─── TIMESTAMP ───
-  document.getElementById('last-updated').textContent = new Date().toLocaleString('en-US', {
-    month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
-  });
-</script>
-</body>
-</html>
+      card
