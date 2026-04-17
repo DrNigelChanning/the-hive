@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Hive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0b0e11;
+    --surface: #131820;
+    --surface2: #1a2130;
+    --border: #232d3f;
+    --accent: #e8ff47;
+    --accent2: #47c5ff;
+    --accent3: #ff6b35;
+    --text: #e8edf5;
+    --muted: #6b7a94;
+    --green: #2dff8a;
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  /* ─── GRID TEXTURE ─── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(232,255,71,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(232,255,71,0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  /* ─── NAV ─── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 56px;
+    background: rgba(11,14,17,0.9);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 32px;
+    z-index: 50;
+    gap: 32px;
+  }
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 16px;
+    color: var(--accent);
+    letter-spacing: -0.3px;
+    white-space: nowrap;
+  }
+  .nav-links {
+    display: flex;
+    gap: 24px;
+    list-style: none;
+    margin-left: auto;
+    align-items: center;
+  }
+  .nav-links a {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-decoration: none;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--text); }
+  /* ─── HERO ─── */
+  .hero {
+    padding: 140px 48px 80px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .hero-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hero-tag::before {
+    content: '';
+    display: inline-block;
+    width: 24px;
+    height: 1px;
+    background: var(--accent);
+  }
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(48px, 6vw, 80px);
+    line-height: 0.95;
+    letter-spacing: -2px;
+    color: var(--text);
+    margin-bottom: 24px;
+  }
+  .hero h1 span {
+    color: var(--accent);
+    display: block;
+  }
+  .hero-desc {
+    font-size: 16px;
+    color: var(--muted);
+    max-width: 480px;
+    line-height: 1.7;
+    margin-bottom: 40px;
+  }
+  .hero-stats {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 28px;
+    color: var(--text);
+  }
+  .stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  /* ─── DIVIDER ─── */
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 0 48px;
+    max-width: 1200px;
+    margin: 0 auto 40px;
+  }
+  .section-divider span {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .section-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  /* ─── TOOLS GRID ─── */
+  .tools-section {
+    padding: 0 48px 80px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 2px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .tool-card {
+    background: var(--surface);
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    text-decoration: none;
+    color: inherit;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.2s;
+    cursor: pointer;
+  }
+  .tool-card:hover { background: var(--surface2); }
+  .tool-card.coming-soon {
+    opacity: 0.6;
+    cursor: default;
+  }
+  .tool-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--card-accent, transparent);
+    transition: opacity 0.2s;
+    opacity: 0;
+  }
+  .tool-card:hover::after { opacity: 1; }
+  .tool-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .tool-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .tool-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 4px 8px;
+    border-radius: 2px;
+    border: 1px solid currentColor;
+  }
+  .badge-live { color: var(--green); }
+  .badge-dev { color: var(--accent2); }
+  .badge-soon { color: var(--muted); }
+  .tool-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: -0.3px;
+    line-height: 1.2;
+  }
+  .tool-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+    flex: 1;
+  }
+  .tool-meta {
+    display: flex;
+    gap: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .tool-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .tool-arrow {
+    position: absolute;
+    bottom: 32px;
+    right: 32px;
+    font-size: 20px;
+    color: var(--muted);
+    transition: transform 0.2s, color 0.2s;
+  }
+  .tool-card:not(.coming-soon):hover .tool-arrow {
+    transform: translate(4px, -4px);
+    color: var(--text);
+  }
+  /* ─── SOPs SECTION ─── */
+  .sops-section {
+    padding: 0 48px 80px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .sops-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+  }
+  .sop-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.2s, background 0.2s;
+    cursor: pointer;
+  }
+  .sop-card:hover {
+    border-color: var(--accent);
+    background: var(--surface2);
+  }
+  .sop-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+    width: 36px;
+    text-align: center;
+  }
+  .sop-info { flex: 1; }
+  .sop-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+  .sop-cat {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .sop-arrow {
+    color: var(--muted);
+    font-size: 14px;
+    transition: transform 0.2s;
+  }
+  .sop-card:hover .sop-arrow { transform: translateX(4px); }
+  /* ─── STATUS BAR ─── */
+  .status-bar {
+    border-top: 1px solid var(--border);
+    padding: 20px 48px;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .status-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+  }
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  /* ─── FOOTER ─── */
+  footer {
+    padding: 32px 48px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  footer span {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+  /* ─── SEARCH BAR ─── */
+  .search-wrap {
+    padding: 0 48px 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .search-input {
+    width: 100%;
+    max-width: 480px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    padding: 12px 16px 12px 42px;
+    outline: none;
+    transition: border-color 0.2s;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7a94' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 14px center;
+  }
+  .search-input:focus { border-color: var(--accent); }
+  .search-input::placeholder { color: var(--muted); }
+  /* ─── ANIMATIONS ─── */
+  .fade-in {
+    opacity: 0;
+    transform: translateY(16px);
+    animation: fadeIn 0.5s ease forwards;
+  }
+  @keyframes fadeIn {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fade-in:nth-child(1) { animation-delay: 0.1s; }
+  .fade-in:nth-child(2) { animation-delay: 0.15s; }
+  .fade-in:nth-child(3) { animation-delay: 0.2s; }
+  .fade-in:nth-child(4) { animation-delay: 0.25s; }
+  .fade-in:nth-child(5) { animation-delay: 0.3s; }
+  .fade-in:nth-child(6) { animation-delay: 0.35s; }
+  .fade-in:nth-child(7) { animation-delay: 0.4s; }
+  @media (max-width: 768px) {
+    nav { padding: 0 20px; }
+    .hero, .tools-section, .sops-section, .search-wrap { padding-left: 20px; padding-right: 20px; }
+    .hero h1 { font-size: 40px; }
+    .tools-grid { grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-logo">⬡ The Hive</div>
+  <ul class="nav-links">
+    <li><a href="#tools">Tools</a></li>
+    <li><a href="#sops">SOPs</a></li>
+  </ul>
+</nav>
+<main>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-tag">Bolder Foods Supply Chain</div>
+    <h1>Operations<span>Command.</span></h1>
+    <p class="hero-desc">All your tools, SOPs, and live data in one place. Built for the team that keeps the soup moving.</p>
+    <div class="hero-stats">
+      <div class="stat"><span class="stat-num">~20</span><span class="stat-label">Active SKUs</span></div>
+      <div class="stat"><span class="stat-num">4</span><span class="stat-label">Retail Partners</span></div>
+      <div class="stat"><span class="stat-num">3</span><span class="stat-label">Warehouse Pods</span></div>
+      <div class="stat"><span class="stat-num" id="tool-count">5</span><span class="stat-label">Live Tools</span></div>
+    </div>
+  </section>
+  <!-- SEARCH -->
+  <div class="search-wrap">
+    <input type="text" class="search-input" id="search" placeholder="Search tools, SOPs, or docs..." oninput="filterTools()">
+  </div>
+  <!-- TOOLS -->
+  <div class="section-divider" id="tools">
+    <span>Active Tools</span>
+  </div>
+  <section class="tools-section">
+    <div class="tools-grid" id="tools-grid">
+      <a class="tool-card fade-in" href="#" style="--card-accent: #2dff8a;">
+        <div class="tool-header">
+          <div class="tool-icon" style="background: rgba(45,255,138,0.1);">📊</div>
+          <span class="tool-badge badge-live">Live</span>
+        </div>
+        <div class="tool-name">Supplier Scorecard</div>
+        <div class="tool-desc">5-metric performance ratings across all active suppliers. Green/Yellow/Red grading on delivery, quality, compliance, and responsiveness.</div>
+        <div class="tool-meta">
+          <span class="tool-tag">Procurement</span>
+          <span class="tool-tag">Quality</span>
+        </div>
+        <span class="tool-arrow">↗</span>
+      </a>
+      <a class="tool-card fade-in" href="#" style="--card-accent: #47c5ff;">
+        <div class="tool-header">
+          <div class="tool-icon" style="background: rgba(71,197,255,0.1);">🚚</div>
+          <span class="tool-badge badge-live">Live</span>
+        </div>
+        <div class="tool-name">Outbound Freight Score</div>
+        <div class="tool-desc">Weekly carrier performance tracking. On-time delivery, cost variance, and exception rates by lane and carrier.</div>
+        <div class="tool-meta">
+          <span class="tool-tag">Logistics</span>
+          <span class="tool-tag">Weekly</span>
+        </div>
+        <span class="tool-arrow">↗</span>
+      </a>
+      <a class="tool-card fade-in" href="#" style="--card-accent: #e8ff47;">
+        <div class="tool-header">
+          <div class="tool-icon" style="background: rgba(232,255,71,0.1);">🐟</div>
+          <span class="tool-badge badge-live">Live</span>
+        </div>
+        <div class="tool-name">Fishbowl Live Views</div>
+        <div class="tool-desc">Real-time inventory, transfer orders, and production data pulled directly from Fishbowl MySQL. Inventory by location, TO compliance, and open POs.</div>
+        <div class="tool-meta">
+          <span class="tool-tag">Inventory</span>
+          <span class="tool-tag">Production</span>
+          <span class="tool-tag">Live Data</span>
+        </div>
+        <span class="tool-arrow">↗</span>
+      </a>
+      <a class="tool-card fade-in" href="#" style="--card-accent: #ff6b35;">
+        <div class="tool-header">
+          <div class="tool-icon" style="background: rgba(255,107,53,0.1);">🔍</div>
+          <span class="tool-badge badge-live">Live</span>
+        </div>
+        <div class="tool-name">Dock Audit App</div>
+        <div class="tool-desc">Inbound receiving audit tool. Capture discrepancies, photo documentation, and automatic escalation to the receiving team and procurement.</div>
+        <div class="tool-meta">
+          <span class="tool-tag">Receiving</span>
+          <span class="tool-tag">Quality</span>
+          <span class="tool-tag">Compliance</span>
+        </div>
+        <span class="tool-arrow">↗</span>
+      </a>
+      <a class="tool-card fade-in" href="#" style="--card-accent: #f0a500;">
+        <div class="tool-header">
+          <div class="tool-icon" style="background: rgba(240,165,0,0.1);">🏷️</div>
+          <span class="tool-badge badge-dev">In Dev</span>
+        </div>
+        <div class="tool-name">Label Studio</div>
+        <div class="tool-desc">Label compliance and design review tool. Validate label artwork against CA AB 660 requirements and internal brand standards before print submission.</div>
+        <div class="tool-meta">
+          <span class="tool-tag">Compliance</span>
+          <span class="tool-tag">Packaging</span>
+          <span class="tool-tag">CA AB 660</span>
+        </div>
+        <span class="tool-arrow">↗</span>
+      </a>
+      <a class="tool-card fade-in" href="#" style="--card-accent: #a78bfa;">
+        <div class="tool-header">
+          <div class="tool-icon" style="background: rgba(167,139,250,0.1);">📅</div>
+          <span class="tool-badge badge-dev">In Dev</span>
+        </div>
+        <div class="tool-name">Dock Appointment Portal</div>
+        <div class="tool-desc">Cal.com-integrated inbound scheduling. Carriers and suppliers self-book dock windows, eliminating first-come-first-served chaos at the dock.</div>
+        <div class="tool-meta">
+          <span class="tool-tag">Scheduling</span>
+          <span class="tool-tag">Inbound</span>
+        </div>
+        <span class="tool-arrow">↗</span>
+      </a>
+      <div class="tool-card coming-soon fade-in" style="--card-accent: #6b7a94;">
+        <div class="tool-header">
+          <div class="tool-icon" style="background: rgba(107,122,148,0.1);">＋</div>
+          <span class="tool-badge badge-soon">Coming Soon</span>
+        </div>
+        <div class="tool-name">More Tools</div>
+        <div class="tool-desc">Morning Brief Dashboard, Pod Wars Scoreboard, Production Planner, and more in the pipeline. This hub grows with the stack.</div>
+        <div class="tool-meta">
+          <span class="tool-tag">Warehouse</span>
+          <span class="tool-tag">Planning</span>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- SOPs -->
+  <div class="section-divider" id="sops">
+    <span>SOPs &amp; Documentation</span>
+  </div>
+  <section class="sops-section">
+    <div class="sops-grid" id="sops-grid">
+      <a class="sop-card" href="#">
+        <span class="sop-icon">📋</span>
+        <div class="sop-info">
+          <div class="sop-name">Receiving SOP</div>
+          <div class="sop-cat">Warehouse · Receiving Pod</div>
+        </div>
+        <span class="sop-arrow">→</span>
+      </a>
+      <a class="sop-card" href="#">
+        <span class="sop-icon">📦</span>
+        <div class="sop-info">
+          <div class="sop-name">Shipping SOP</div>
+          <div class="sop-cat">Warehouse · Shipping Pod</div>
+        </div>
+        <span class="sop-arrow">→</span>
+      </a>
+      <a class="sop-card" href="#">
+        <span class="sop-icon">🥄</span>
+        <div class="sop-info">
+          <div class="sop-name">Pick & Prep SOP</div>
+          <div class="sop-cat">Warehouse · Pick/Prep Pod</div>
+        </div>
+        <span class="sop-arrow">→</span>
+      </a>
+      <a class="sop-card" href="#">
+        <span class="sop-icon">🧾</span>
+        <div class="sop-info">
+          <div class="sop-name">Transfer Order Process</div>
+          <div class="sop-cat">Logistics · CCC / Lineage</div>
+        </div>
+        <span class="sop-arrow">→</span>
+      </a>
+      <a class="sop-card" href="#">
+        <span class="sop-icon">🔬</span>
+        <div class="sop-info">
+          <div class="sop-name">Supplier Non-Conformance</div>
+          <div class="sop-cat">Quality · Procurement</div>
+        </div>
+        <span class="sop-arrow">→</span>
+      </a>
+      <a class="sop-card" href="#">
+        <span class="sop-icon">🏷️</span>
+        <div class="sop-info">
+          <div class="sop-name">Label Compliance Guide</div>
+          <div class="sop-cat">Compliance · CA AB 660</div>
+        </div>
+        <span class="sop-arrow">→</span>
+      </a>
+      <a class="sop-card" href="#">
+        <span class="sop-icon">📐</span>
+        <div class="sop-info">
+          <div class="sop-name">Dock Scheduling Guide</div>
+          <div class="sop-cat">Logistics · Inbound</div>
+        </div>
+        <span class="sop-arrow">→</span>
+      </a>
+      <a class="sop-card" href="#">
+        <span class="sop-icon">🏆</span>
+        <div class="sop-info">
+          <div class="sop-name">Pod Wars Handbook</div>
+          <div class="sop-cat">Warehouse · All Pods</div>
+        </div>
+        <span class="sop-arrow">→</span>
+      </a>
+    </div>
+  </section>
+  <!-- STATUS -->
+  <div class="status-bar">
+    <div class="status-item"><span class="status-dot"></span>Fishbowl Connected</div>
+    <div class="status-item"><span class="status-dot"></span>Google Workspace Sync</div>
+    <div class="status-item" style="margin-left:auto;font-size:10px;">Last updated: <span id="last-updated"></span></div>
+  </div>
+</main>
+<footer>
+  <span>© 2026 Bolder Foods / The Honest Stand</span>
+  <span>The Hive · Internal Use Only</span>
+</footer>
+<script>
+  // ─── SEARCH ───
+  function filterTools() {
+    const q = document.getElementById('search').value.toLowerCase();
+    document.querySelectorAll('.tool-card').forEach(card => {
+      const text = card.textContent.toLowerCase();
+      card.style.display = text.includes(q) ? '' : 'none';
+    });
+    document.querySelectorAll('.sop-card').forEach(card => {
+      const text = card.textContent.toLowerCase();
+      card.style.display = text.includes(q) ? '' : 'none';
+    });
+  }
+  // ─── TOOL COUNT ───
+  const liveCount = document.querySelectorAll('.badge-live').length;
+  document.getElementById('tool-count').textContent = liveCount + '+';
+  // ─── TIMESTAMP ───
+  document.getElementById('last-updated').textContent = new Date().toLocaleString('en-US', {
+    month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
+  });
+</script>
+</body>
+</html>
