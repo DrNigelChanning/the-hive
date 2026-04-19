@@ -444,12 +444,6 @@
     <div class="hero-tag">Bolder Foods Supply Chain</div>
     <h1>Operations<span>Command.</span></h1>
     <p class="hero-desc">All your tools, SOPs, and live data in one place. Built for the team that keeps the soup moving.</p>
-    <div class="hero-stats">
-      <div class="stat"><span class="stat-num">~20</span><span class="stat-label">Active SKUs</span></div>
-      <div class="stat"><span class="stat-num">4</span><span class="stat-label">Retail Partners</span></div>
-      <div class="stat"><span class="stat-num">3</span><span class="stat-label">Warehouse Pods</span></div>
-      <div class="stat"><span class="stat-num" id="tool-count">5</span><span class="stat-label">Live Tools</span></div>
-    </div>
   </section>
   <!-- SEARCH -->
   <div class="search-wrap">
@@ -518,7 +512,7 @@
       <a class="tool-card fade-in" href="https://labels.bolderfoods.com" target="_blank" style="--card-accent: #f0a500;">
         <div class="tool-header">
           <div class="tool-icon" style="background: rgba(240,165,0,0.1);">🏷️</div>
-          <span class="tool-badge badge-dev">In Dev</span>
+          <span class="tool-badge badge-live">Live</span>
         </div>
         <div class="tool-name">Label Studio</div>
         <div class="tool-desc">Label compliance and design review tool. Validate label artwork against CA AB 660 requirements and internal brand standards before print submission.</div>
@@ -645,4 +639,22 @@
     const q = document.getElementById('search').value.toLowerCase();
     document.querySelectorAll('.tool-card').forEach(card => {
       const text = card.textContent.toLowerCase();
-      card
+      card.style.display = text.includes(q) ? '' : 'none';
+    });
+    document.querySelectorAll('.sop-card').forEach(card => {
+      const text = card.textContent.toLowerCase();
+      card.style.display = text.includes(q) ? '' : 'none';
+    });
+  }
+  // ─── LAST UPDATED ───
+  (function() {
+    const el = document.getElementById('last-updated');
+    if (el) {
+      el.textContent = new Date().toLocaleDateString('en-US', {
+        year: 'numeric', month: 'short', day: 'numeric'
+      });
+    }
+  })();
+</script>
+</body>
+</html>
