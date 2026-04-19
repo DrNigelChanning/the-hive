@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Hive — Bolder Foods</title>
+<title>Insights — Bolder Foods</title>
 <link rel="icon" type="image/png" href="./assets/BF_Logo_Oval.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -48,7 +48,7 @@
   .hero::after { bottom: -120px; right: -80px; }
   .hero-nav {
     position: absolute;
-    top: 24px; right: 28px;
+    top: 24px; left: 28px;
     font-size: 13px;
     color: var(--yellow-soft);
     text-decoration: none;
@@ -74,11 +74,20 @@
     width: auto;
     display: block;
   }
+  .page-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 44px;
+    color: var(--cream);
+    letter-spacing: -0.8px;
+    margin-bottom: 10px;
+    position: relative;
+  }
   .tagline {
     font-family: 'Fraunces', serif;
     font-weight: 400;
     font-style: italic;
-    font-size: 20px;
+    font-size: 18px;
     color: var(--yellow-soft);
     letter-spacing: 0.3px;
     max-width: 560px;
@@ -87,7 +96,7 @@
   }
   /* ── TOOLS ── */
   .tools-wrap {
-    max-width: 1100px;
+    max-width: 860px;
     margin: -40px auto 0;
     padding: 0 32px 80px;
     position: relative;
@@ -113,7 +122,7 @@
   }
   .tools-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 20px;
   }
   .tool-card {
@@ -190,39 +199,35 @@
   footer span { opacity: 0.7; }
   @media (max-width: 640px) {
     .hero { padding: 60px 20px 56px; }
-    .hero-nav { top: 16px; right: 16px; font-size: 12px; padding: 6px 12px; }
+    .hero-nav { top: 16px; left: 16px; font-size: 12px; padding: 6px 12px; }
     .logo-wrap img { height: 90px; }
-    .tagline { font-size: 16px; }
+    .page-title { font-size: 32px; }
+    .tagline { font-size: 15px; }
     .tools-wrap { padding: 0 20px 60px; }
   }
 </style>
 </head>
 <body>
 <header class="hero">
-  <a href="./insights.html" class="hero-nav">Insights →</a>
+  <a href="./index.html" class="hero-nav">← The Hive</a>
   <div class="logo-wrap"><img src="./assets/BF_Logo_Oval.png" alt="Bolder Foods"></div>
-  <p class="tagline">The Hive — tools for the team that keeps the soup moving.</p>
+  <h1 class="page-title">Insights</h1>
+  <p class="tagline">Supplier, carrier, and operational performance — at a glance.</p>
 </header>
 <main class="tools-wrap">
-  <div class="section-label">Active Tools</div>
+  <div class="section-label">Scorecards &amp; Reports</div>
   <div class="tools-grid">
-    <a class="tool-card" href="https://fishbowl.bolderfoods.com" target="_blank" style="--card-color: #F0CE6F;">
-      <div class="tool-icon">🐟</div>
-      <div class="tool-name">Fishbowl Live Views</div>
-      <div class="tool-desc">Real-time inventory, transfer orders, and production data pulled directly from Fishbowl. Inventory by location, TO compliance, and open POs.</div>
-      <div class="tool-meta"><span class="tool-tag">Inventory</span><span class="tool-tag">Live Data</span></div>
+    <a class="tool-card" href="./supplier-scorecard.html" style="--card-color: #4A8B3D;">
+      <div class="tool-icon">📊</div>
+      <div class="tool-name">Supplier Scorecard</div>
+      <div class="tool-desc">Five-metric performance ratings across all active suppliers. Green/Yellow/Red grading on delivery, quality, compliance, and responsiveness.</div>
+      <div class="tool-meta"><span class="tool-tag">Procurement</span><span class="tool-tag">Quality</span></div>
     </a>
-    <a class="tool-card" href="https://dock-audit-production.up.railway.app" target="_blank" style="--card-color: #B54D2B;">
-      <div class="tool-icon">🔍</div>
-      <div class="tool-name">Dock Audit</div>
-      <div class="tool-desc">Inbound receiving audit tool. Capture discrepancies, photo documentation, and automatic escalation to the receiving team and procurement.</div>
-      <div class="tool-meta"><span class="tool-tag">Receiving</span><span class="tool-tag">Quality</span></div>
-    </a>
-    <a class="tool-card" href="https://labels.bolderfoods.com" target="_blank" style="--card-color: #8B5A2B;">
-      <div class="tool-icon">🏷️</div>
-      <div class="tool-name">Label Studio</div>
-      <div class="tool-desc">Label compliance and print tool. Validate label artwork and print directly to warehouse Zebras over the network.</div>
-      <div class="tool-meta"><span class="tool-tag">Compliance</span><span class="tool-tag">Packaging</span></div>
+    <a class="tool-card" href="./freight-score.html" style="--card-color: #D4872A;">
+      <div class="tool-icon">🚚</div>
+      <div class="tool-name">Outbound Freight Score</div>
+      <div class="tool-desc">Weekly carrier performance tracking. On-time delivery, cost variance, and exception rates by lane and carrier.</div>
+      <div class="tool-meta"><span class="tool-tag">Logistics</span><span class="tool-tag">Weekly</span></div>
     </a>
   </div>
 </main>
