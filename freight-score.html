@@ -67,6 +67,7 @@ tfoot td{padding:8px 10px;font-weight:700;color:#F1F5F9}
 .chart-card.last{border-radius:0 0 10px 10px;border-bottom:1px solid #1F2D40}
 .chart-card h4{font-size:12px;color:#94A3B8;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
 .chart-card p{font-size:10px;color:#334155;margin-bottom:10px}
+.chart-card canvas{max-height:200px}
 .iss-row{background:#0D1525;border-radius:8px;padding:10px 12px;display:flex;gap:12px;align-items:flex-start;margin-bottom:6px}
 .iss-meta{flex-shrink:0;width:90px}
 .iss-c{font-size:11px;font-weight:700}
@@ -397,7 +398,7 @@ let WEEKS=buildWeeks();
 let state={selIdx:WEEKS.length-1,active:new Set(CUSTS),tab:'overview',range:16};
 let CHARTS={};
 Chart.defaults.color='#94A3B8';Chart.defaults.font.family="'Segoe UI',system-ui,sans-serif";Chart.defaults.font.size=11;
-function cCfg(extra){return{plugins:{legend:{labels:{color:'#94A3B8',usePointStyle:true,pointStyle:'circle',padding:12}},tooltip:{backgroundColor:'#1E293B',borderColor:'#334155',borderWidth:1,padding:8,titleColor:'#94A3B8',bodyColor:'#F1F5F9'}},scales:{x:{grid:{color:'#1F2D40'},ticks:{color:'#475569',maxRotation:40,autoSkip:true,font:{size:10}}},y:{grid:{color:'#1F2D40'},ticks:{color:'#475569',font:{size:10}}}},responsive:true,maintainAspectRatio:true,...extra};}
+function cCfg(extra){return{plugins:{legend:{labels:{color:'#94A3B8',usePointStyle:true,pointStyle:'circle',padding:12}},tooltip:{backgroundColor:'#1E293B',borderColor:'#334155',borderWidth:1,padding:8,titleColor:'#94A3B8',bodyColor:'#F1F5F9'}},scales:{x:{grid:{color:'#1F2D40'},ticks:{color:'#475569',maxRotation:40,autoSkip:true,font:{size:10}}},y:{grid:{color:'#1F2D40'},ticks:{color:'#475569',font:{size:10}}}},responsive:true,maintainAspectRatio:false,...extra};}
 function spark(vals,color,w=90,h=30){const c=vals.filter(v=>v!=null);if(c.length<2)return`<svg width="${w}" height="${h}"></svg>`;const mn=Math.min(...c),mx=Math.max(...c),rng=mx-mn||1;const pts=vals.map((v,i)=>{if(v==null)return null;return`${((i/(vals.length-1))*w).toFixed(1)},${(h-1-((v-mn)/rng)*(h-2)).toFixed(1)}`;}).filter(Boolean).join(' ');return`<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="display:block"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;}
 function initWeekSel(){const sel=document.getElementById('week-sel');sel.innerHTML='';WEEKS.forEach((w,i)=>{const o=document.createElement('option');o.value=i;o.textContent=w.wl;sel.appendChild(o);});sel.value=state.selIdx;sel.onchange=()=>{state.selIdx=+sel.value;render();};document.getElementById('btn-prev').onclick=()=>{if(state.selIdx>0){state.selIdx--;sel.value=state.selIdx;render();}};document.getElementById('btn-next').onclick=()=>{if(state.selIdx<WEEKS.length-1){state.selIdx++;sel.value=state.selIdx;render();}};}
 function initPills(){document.querySelectorAll('.pill').forEach(btn=>{const c=btn.dataset.c;setPill(btn,c);btn.onclick=()=>{const n=new Set(state.active);if(n.has(c)){if(n.size>1)n.delete(c);}else n.add(c);state.active=n;document.querySelectorAll('.pill').forEach(b=>setPill(b,b.dataset.c));render();};});}
