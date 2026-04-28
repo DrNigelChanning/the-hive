@@ -1,0 +1,429 @@
+<!DOCTYPE html><script type="application/json" id="cowork-artifact-meta">
+{
+  "name": "Freight Outbound Dashboard",
+  "schemaVersion": 1,
+  "description": "Freight Outbound dashboard — dark theme, week navigator, KPI strip with prior-week deltas, customer pills, Overview/Trends/Issues Log tabs, mini cards with sparklines. Pre-split Kroger = Kroger-BR. Data Jun 2025–Apr 25 2026. CSV paste-to-update feature built in."
+}
+</script>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Outbound Freight Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0A0F1E;font-family:'Segoe UI',system-ui,sans-serif;color:#E2E8F0;font-size:14px;min-height:100vh}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:#0A0F1E}::-webkit-scrollbar-thumb{background:#334155;border-radius:3px}
+button,select{font-family:inherit;cursor:pointer}
+#header{background:linear-gradient(135deg,#1E293B,#0F172A);border-bottom:1px solid #1E3A5F;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+#header h1{font-size:18px;font-weight:800;color:#F8FAFC}
+#header p{font-size:11px;color:#475569;margin-top:2px}
+.hdr-ctrl{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.hdr-ctrl label{font-size:11px;color:#475569}
+.hdr-sel{background:#1E293B;border:1px solid #334155;color:#F1F5F9;padding:5px 8px;border-radius:6px;font-size:12px}
+.nav-btn{background:#1E293B;border:1px solid #334155;color:#F1F5F9;padding:5px 9px;border-radius:6px;font-size:12px}
+.nav-btn:disabled{opacity:.35;cursor:default}
+.upd-btn{background:#3B82F6;border:none;color:#fff;padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600}
+#filter-bar{background:#0D1525;border-bottom:1px solid #1E2D40;padding:8px 20px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+#filter-bar .fb-lbl{font-size:11px;color:#475569;font-weight:700;text-transform:uppercase}
+.pill{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;border:2px solid;transition:all .15s}
+.pill-note{margin-left:auto;font-size:10px;color:#334155}
+#kpi-strip{padding:14px 20px 0;display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.kpi-c{background:#111827;border:1px solid #1F2D40;border-radius:10px;padding:14px;position:relative;overflow:hidden}
+.kpi-bar{position:absolute;top:0;left:0;right:0;height:3px}
+.kpi-lbl{font-size:10px;color:#475569;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px}
+.kpi-val{font-size:24px;font-weight:800;color:#F8FAFC}
+.kpi-d{font-size:11px;margin-top:3px}
+.kpi-p{font-size:10px;color:#334155;margin-top:2px}
+#tab-bar{padding:12px 20px 0;display:flex;border-bottom:1px solid #1E2D40}
+.tab-btn{padding:8px 18px;border-radius:6px 6px 0 0;font-size:13px;border:none;border-bottom:2px solid transparent;background:transparent;color:#475569;transition:all .15s}
+.tab-btn.active{font-weight:700;border-bottom-color:#3B82F6;background:#111827;color:#F1F5F9}
+.tab-panel{display:none;padding:0 20px 28px}
+.tab-panel.active{display:block}
+.panel-card{background:#111827;border:1px solid #1F2D40;border-radius:0 10px 10px 10px;padding:16px}
+.ov-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.ov-hdr h3{font-size:12px;color:#94A3B8;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead tr{border-bottom:1px solid #1F2D40}
+th{padding:7px 10px;text-align:left;color:#475569;font-weight:600;font-size:11px;text-transform:uppercase;white-space:nowrap}
+tbody tr:hover td{background:#0D1525}
+td{padding:9px 10px;border-bottom:1px solid #0A0F1E}
+tfoot tr{border-top:2px solid #1F2D40;background:#0A0F1E}
+tfoot td{padding:8px 10px;font-weight:700;color:#F1F5F9}
+.bar-w{display:flex;align-items:center;gap:6px}
+.bar-bg{width:50px;height:5px;border-radius:3px;background:#1E293B;flex-shrink:0}
+.bar-fill{height:100%;border-radius:3px}
+.dtag{font-size:10px;margin-left:3px}
+#mini-cards{margin-top:16px;display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.mc{background:#0D1525;border-radius:8px;padding:12px}
+.mc-title{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.mc-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.mc-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.mc-m{background:#111827;border-radius:6px;padding:6px 8px}
+.mc-ml{font-size:10px;color:#475569;text-transform:uppercase}
+.mc-mv{font-size:14px;font-weight:700;margin-top:1px}
+.spark{margin-top:8px}
+.spark-lbl{font-size:9px;color:#334155;margin-top:1px;text-align:center}
+.range-bar{background:#111827;border:1px solid #1F2D40;border-radius:0 10px 0 0;border-bottom:none;padding:10px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.range-bar span{font-size:11px;color:#475569;font-weight:600}
+.range-btn{padding:3px 10px;border-radius:5px;font-size:11px;font-weight:600;border:1px solid #1F2D40;background:transparent;color:#475569}
+.range-btn.active{border-color:#3B82F6;background:#3B82F6;color:#fff}
+.chart-card{background:#111827;border:1px solid #1F2D40;border-bottom:none;padding:16px;margin-top:1px}
+.chart-card.last{border-radius:0 0 10px 10px;border-bottom:1px solid #1F2D40}
+.chart-card h4{font-size:12px;color:#94A3B8;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.chart-card p{font-size:10px;color:#334155;margin-bottom:10px}
+.iss-row{background:#0D1525;border-radius:8px;padding:10px 12px;display:flex;gap:12px;align-items:flex-start;margin-bottom:6px}
+.iss-meta{flex-shrink:0;width:90px}
+.iss-c{font-size:11px;font-weight:700}
+.iss-wl{font-size:10px;color:#334155;margin-top:1px}
+.iss-body{flex:1;font-size:12px;color:#CBD5E1;line-height:1.5}
+#upd-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;align-items:center;justify-content:center}
+#upd-modal.show{display:flex}
+#upd-inner{background:#1E293B;border:1px solid #334155;border-radius:12px;padding:20px;width:580px;max-width:92vw}
+#upd-inner h3{font-size:14px;font-weight:700;color:#F1F5F9;margin-bottom:6px}
+#upd-inner p{font-size:11px;color:#475569;margin-bottom:10px;line-height:1.5}
+#upd-ta{width:100%;height:210px;background:#0A0F1E;border:1px solid #334155;border-radius:8px;color:#E2E8F0;font-size:11px;padding:10px;resize:vertical;font-family:monospace}
+.upd-btns{display:flex;gap:8px;margin-top:10px}
+.upd-apply{background:#3B82F6;border:none;color:#fff;padding:7px 16px;border-radius:6px;font-size:12px;font-weight:600}
+.upd-cancel{background:transparent;border:1px solid #334155;color:#94A3B8;padding:7px 16px;border-radius:6px;font-size:12px}
+#upd-msg{font-size:11px;margin-top:8px;min-height:16px}
+@media(max-width:900px){#kpi-strip{grid-template-columns:repeat(3,1fr)}#mini-cards{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){#kpi-strip{grid-template-columns:repeat(2,1fr)}#mini-cards{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div>
+    <h1>📦 Outbound Freight Dashboard</h1>
+    <p>SIOP Weekly Review &nbsp;·&nbsp; Jun 2025 – Apr 25, 2026</p>
+  </div>
+  <div class="hdr-ctrl">
+    <label>Week:</label>
+    <select id="week-sel" class="hdr-sel"></select>
+    <button class="nav-btn" id="btn-prev">◀</button>
+    <button class="nav-btn" id="btn-next">▶</button>
+    <button class="upd-btn" onclick="showModal()">⬆ Update Data</button>
+  </div>
+</div>
+
+<div id="filter-bar">
+  <span class="fb-lbl">Customers:</span>
+  <button class="pill" data-c="Costco">Costco</button>
+  <button class="pill" data-c="Kroger - PL">Kroger PL</button>
+  <button class="pill" data-c="Kroger - BR">Kroger BR</button>
+  <button class="pill" data-c="Trader Joes">Trader Joe's</button>
+  <button class="pill" data-c="Wal-Mart">Walmart</button>
+  <span class="pill-note">* Trader Joe's freight is carrier-paid ($0 cost) &nbsp;·&nbsp; Kroger split into PL/BR starting 9/14/2025; pre-split treated as BR</span>
+</div>
+
+<div id="kpi-strip">
+  <div class="kpi-c" id="kpi-otif"><div class="kpi-bar" style="background:linear-gradient(90deg,#34D399,transparent)"></div><div class="kpi-lbl">OT/IF</div><div class="kpi-val">—</div></div>
+  <div class="kpi-c" id="kpi-dpc"><div class="kpi-bar" style="background:linear-gradient(90deg,#818CF8,transparent)"></div><div class="kpi-lbl">$/Case</div><div class="kpi-val">—</div></div>
+  <div class="kpi-c" id="kpi-dpl"><div class="kpi-bar" style="background:linear-gradient(90deg,#A78BFA,transparent)"></div><div class="kpi-lbl">$/Lb</div><div class="kpi-val">—</div></div>
+  <div class="kpi-c" id="kpi-cost"><div class="kpi-bar" style="background:linear-gradient(90deg,#F59E0B,transparent)"></div><div class="kpi-lbl">Freight Cost</div><div class="kpi-val">—</div></div>
+  <div class="kpi-c" id="kpi-cases"><div class="kpi-bar" style="background:linear-gradient(90deg,#38BDF8,transparent)"></div><div class="kpi-lbl">Total Cases</div><div class="kpi-val">—</div></div>
+</div>
+
+<div id="tab-bar">
+  <button class="tab-btn active" data-tab="overview">📊 Overview</button>
+  <button class="tab-btn" data-tab="trends">📈 Trends</button>
+  <button class="tab-btn" data-tab="issues">⚠️ Issues Log</button>
+</div>
+
+<div id="tab-overview" class="tab-panel active">
+  <div class="panel-card">
+    <div class="ov-hdr">
+      <h3 id="ov-title">Week Breakdown</h3>
+      <span id="ov-sub" style="font-size:11px;color:#334155"></span>
+    </div>
+    <div class="tbl-wrap"><table id="ov-table"></table></div>
+    <div id="mini-cards"></div>
+  </div>
+</div>
+
+<div id="tab-trends" class="tab-panel">
+  <div class="range-bar">
+    <span>Show last:</span>
+    <button class="range-btn" data-r="8">8 wks</button>
+    <button class="range-btn active" data-r="16">16 wks</button>
+    <button class="range-btn" data-r="24">24 wks</button>
+    <button class="range-btn" data-r="99">All</button>
+  </div>
+  <div class="chart-card"><h4>OT/IF % by Customer</h4><canvas id="c-otif" height="200"></canvas></div>
+  <div class="chart-card"><h4>$/Case Trend</h4><p>Paid freight only — Trader Joe's excluded (carrier-paid)</p><canvas id="c-dpc" height="180"></canvas></div>
+  <div class="chart-card"><h4>Total Weekly Freight Cost by Customer</h4><canvas id="c-cost" height="200"></canvas></div>
+  <div class="chart-card last"><h4>$/Lb Trend</h4><p>Paid freight only</p><canvas id="c-dpl" height="180"></canvas></div>
+</div>
+
+<div id="tab-issues" class="tab-panel">
+  <div class="panel-card">
+    <div class="ov-hdr">
+      <h3 id="iss-title">Issues &amp; Notes Log</h3>
+      <span id="iss-sub" style="font-size:11px;color:#334155"></span>
+    </div>
+    <div id="issues-list"></div>
+  </div>
+</div>
+
+<div id="upd-modal">
+  <div id="upd-inner">
+    <h3>Update Dashboard Data</h3>
+    <p>Paste the full contents of your <strong style="color:#F1F5F9">Freight Outbound x Week</strong> CSV export below. Only "Done" rows are imported. The entire dataset is replaced — no manual editing needed.</p>
+    <textarea id="upd-ta" placeholder="Paste CSV contents here…"></textarea>
+    <div class="upd-btns">
+      <button class="upd-apply" onclick="applyCSV()">Apply &amp; Refresh</button>
+      <button class="upd-cancel" onclick="hideModal()">Cancel</button>
+    </div>
+    <div id="upd-msg"></div>
+  </div>
+</div>
+
+<script>
+const D_RAW = [
+"Costco|2025-06-01|Jun 1–7|85.71|2150|6350|7|4|78045|2.95|.08|",
+"Kroger - BR|2025-06-01|Jun 1–7|100|176|250|1|1|2570.92|1.42|.10|",
+"Trader Joes|2025-06-01|Jun 1–7|88.89|1840|0|9|7|22926.4|0|0|",
+"Costco|2025-06-08|Jun 8–14|83.33|1300|5700|6|3|47494|4.38|.12|",
+"Kroger - BR|2025-06-08|Jun 8–14|100|224|250|1|1|3272.08|1.12|.08|",
+"Trader Joes|2025-06-08|Jun 8–14|100|1360|0|11|8|16945.6|0|0|",
+"Costco|2025-06-15|Jun 15–21|75|950|3900|4|3|34485|4.11|.11|",
+"Kroger - BR|2025-06-15|Jun 15–21|100|208|250|1|1|3038.36|1.20|.08|",
+"Trader Joes|2025-06-15|Jun 15–21|100|2160|0|10|7|26913.6|0|0|",
+"Costco|2025-06-22|Jun 22–28|40|1300|5411.5|5|2|47190|4.16|.11|",
+"Kroger - BR|2025-06-22|Jun 22–28|100|224|250|1|1|3272.08|1.12|.08|",
+"Trader Joes|2025-06-22|Jun 22–28|92.31|1520|0|13|9|18939.2|0|0|",
+"Costco|2025-06-29|Jun 29–Jul 5|100|1650|9295.93|7|5|59895|5.63|.16|",
+"Kroger - BR|2025-06-29|Jun 29–Jul 5|100|224|250|1|1|3272|1.12|.08|",
+"Trader Joes|2025-06-29|Jun 29–Jul 5|100|1440|0|9|7|17942|0|0|",
+"Costco|2025-07-06|Jul 6–12|100|1450|5520|5|2|52635|3.81|.10|",
+"Kroger - BR|2025-07-06|Jul 6–12|100|176|250|1|1|2571|1.42|.10|",
+"Trader Joes|2025-07-06|Jul 6–12|100|2160|0|14|10|26914|0|0|",
+"Costco|2025-07-13|Jul 13–19|100|1700|7545|7|4|61710|4.44|.12|",
+"Kroger - BR|2025-07-13|Jul 13–19|100|208|250|1|1|3038.36|1.20|.08|",
+"Trader Joes|2025-07-13|Jul 13–19|100|1200|0|9|4|14952|0|0|",
+"Costco|2025-07-20|Jul 20–26|100|1320|7618.73|8|4|47916|5.77|.16|",
+"Kroger - BR|2025-07-20|Jul 20–26|100|256|250|1|1|3739.52|.98|.07|",
+"Trader Joes|2025-07-20|Jul 20–26|100|480|0|4|2|5980.8|0|0|",
+"Costco|2025-07-27|Jul 27–Aug 2|100|1510|7651.33|7|3|54813|5.07|.14|",
+"Kroger - BR|2025-07-27|Jul 27–Aug 2|100|128|250|1|1|1869.76|1.95|.13|",
+"Trader Joes|2025-07-27|Jul 27–Aug 2|100|800|0|6|3|9970|0|0|",
+"Costco|2025-08-03|Aug 3–9|75|2050|8065|8|4|74415|3.93|.11|",
+"Kroger - BR|2025-08-03|Aug 3–9|100|160|250|1|1|2337.2|1.56|.11|",
+"Trader Joes|2025-08-03|Aug 3–9|100|1600|0|10|8|19936|0|0|",
+"Costco|2025-08-10|Aug 10–16|100|2100|8070|9|4|76230|3.84|.11|",
+"Kroger - BR|2025-08-10|Aug 10–16|100|192|250|1|1|2804.62|1.30|.09|",
+"Trader Joes|2025-08-10|Aug 10–16|100|1200|0|7|5|14952|0|0|",
+"Costco|2025-08-17|Aug 17–23|50|4100|10995|10|5|134970|2.68|.08|",
+"Kroger - BR|2025-08-17|Aug 17–23|100|80|250|1|1|1168.6|3.13|.21|",
+"Trader Joes|2025-08-17|Aug 17–23|100|13120|0|16|13|163475.2|0|0|",
+"Costco|2025-08-24|Aug 24–30|94.12|9500|23975|17|10|313896|2.52|.08|",
+"Kroger - BR|2025-08-24|Aug 24–30|100|192|250|1|1|2804.64|1.30|.09|",
+"Trader Joes|2025-08-24|Aug 24–30|94.74|14240|0|19|15|177430|0|0|",
+"Costco|2025-08-31|Aug 31–Sep 6|88.89|7250|22235|18|9|247005|3.07|.09|",
+"Kroger - BR|2025-08-31|Aug 31–Sep 6|100|256|250|1|1|3739.52|.98|.07|",
+"Trader Joes|2025-08-31|Aug 31–Sep 6|88.89|11422|0|9|9|142318.12|0|0|",
+"Costco|2025-09-07|Sep 7–13|94.44|8212|26643|18|11|289779.6|3.24|.09|PO 10530731121 Frederick – 88cs short; waiting on test results",
+"Kroger - BR|2025-09-07|Sep 7–13|100|192|350|1|1|2804.64|1.82|.12|Shipped wrong lot code – $100 stop-back fee; 1hr wait swapping pallet",
+"Trader Joes|2025-09-07|Sep 7–13|100|14800|0|13|11|184408|0|0|",
+"Costco|2025-09-14|Sep 14–20|73.68|15704|24866|19|10|333872.01|1.58|.07|Multiple late deliveries: SLC/Sumner missed UT delivery; Mira Loma all appts rescheduled to 9/19",
+"Kroger - PL|2025-09-14|Sep 14–20|25|9792|10265|4|4|83536.64|1.05|.12|FIRST WEEK OF PL – IN/GA SGO cases short (less yield); 46773/51594/51595 Kroger Co",
+"Kroger - BR|2025-09-14|Sep 14–20|100|352|250|1|1|5141.84|.71|.05|",
+"Trader Joes|2025-09-14|Sep 14–20|100|15808|0|11|9|196374.83|0|0|",
+"Costco|2025-09-21|Sep 21–27|100|6560|14845|11|8|221034|2.26|.07|",
+"Kroger - PL|2025-09-21|Sep 21–27||0|0|0|0|0|0|0|",
+"Kroger - BR|2025-09-21|Sep 21–27|100|96|250|1|1|1402.32|2.60|.18|",
+"Trader Joes|2025-09-21|Sep 21–27|93.33|26111|0|15|11|305730.05|0|0|PO 151579145 – 81cs CTH short; USDA pathogen results hold",
+"Costco|2025-09-28|Sep 28–Oct 4|95.45|9950|31227|22|13|326535|3.14|.10|UT did not unload 1 pallet – $450x2 layovers and $70 stop-off fee",
+"Kroger - PL|2025-09-28|Sep 28–Oct 4||0|0|0|0|0|0|0|",
+"Kroger - BR|2025-09-28|Sep 28–Oct 4|100|589|250|1|1|8603.82|.42|.03|",
+"Trader Joes|2025-09-28|Sep 28–Oct 4|100|23808|0|17|14|286086.83|0|0|",
+"Costco|2025-10-05|Oct 5–11|100|2300|5915|4|3|83490|2.57|.07|",
+"Kroger - PL|2025-10-05|Oct 5–11|100|5184|5610|2|2|66337.92|1.08|.08|",
+"Kroger - BR|2025-10-05|Oct 5–11||0|0|0|0|0|0|0|",
+"Trader Joes|2025-10-05|Oct 5–11|87.5|3760|0|8|5|47000|0|0|80cs CTH short; COL/CTH mix-up PO 151862902",
+"Costco|2025-10-12|Oct 12–18|96.3|14410|30342|27|13|411415.4|2.11|.07|6cs BVS short PO 2680819071; overweight truck had to return – $900",
+"Kroger - PL|2025-10-12|Oct 12–18||0|0|0|0|0|0|0|",
+"Kroger - BR|2025-10-12|Oct 12–18|0|192|250|1|1|2804.64|1.30|.09|96 GCC cases short",
+"Trader Joes|2025-10-12|Oct 12–18|100|42224|0|27|23|505743.68|0|0|",
+"Wal-Mart|2025-10-12|Oct 12–18|100|14760|8350|46|3|101516|.57|.08|",
+"Costco|2025-10-19|Oct 19–25|100|10520|18163|15|7|275567.6|1.73|.07|Reship due to slow XMI update; truck shipped 8am Monday with old order",
+"Kroger - PL|2025-10-19|Oct 19–25|100|2880|2850|1|1|36854.4|.99|.08|",
+"Kroger - BR|2025-10-19|Oct 19–25|100|384|250|1|1|5609.28|.65|.04|",
+"Trader Joes|2025-10-19|Oct 19–25|85.71|6240|0|7|7|77750.4|0|0|PO 151988792 approved to ship 10/20 for 10/18 RDD",
+"Wal-Mart|2025-10-19|Oct 19–25|100|10296|6090|46|3|70813.6|.59|.09|",
+"Costco|2025-10-26|Oct 26–Nov 1|100|11250|23366|18|11|372662.4|2.08|.06|",
+"Kroger - PL|2025-10-26|Oct 26–Nov 1|0|2880|3200|1|1|24569.6|1.11|.13|Missed delivery; truck kept in dock overnight – paperwork issue",
+"Kroger - BR|2025-10-26|Oct 26–Nov 1||0|0|0|0|0|0|0|",
+"Trader Joes|2025-10-26|Oct 26–Nov 1|100|12000|0|13|11|149520|0|0|",
+"Wal-Mart|2025-10-26|Oct 26–Nov 1|100|12000|6090|45|3|82533.33|.51|.07|",
+"Costco|2025-11-02|Nov 2–8|87.5|9900|30677|16|10|326568|3.10|.09|",
+"Kroger - PL|2025-11-02|Nov 2–8||0|0|0|0|0|0|0|",
+"Kroger - BR|2025-11-02|Nov 2–8|0|960|600|1|1|14023.2|.63|.04|Warehouse didn't load 192cs GCC; AC provided photo of location",
+"Trader Joes|2025-11-02|Nov 2–8|100|11520|0|11|9|143539.2|0|0|",
+"Wal-Mart|2025-11-02|Nov 2–8|100|6000|6090|34|3|41266.67|1.02|.15|",
+"Costco|2025-11-09|Nov 9–15|100|14800|53223|27|15|463320|3.60|.11|Two UT POs for new store opening had 12/12 RDD; advised to keep 12/15 DELV APPT",
+"Kroger - PL|2025-11-09|Nov 9–15|100|10272|14280|7|4|131447.4|1.39|.11|",
+"Kroger - BR|2025-11-09|Nov 9–15||0|0|0|0|0|0|0|",
+"Trader Joes|2025-11-09|Nov 9–15|100|19792|0|17|16|247804.16|0|0|",
+"Wal-Mart|2025-11-09|Nov 9–15|100|6000|4060|37|2|41266.67|.68|.10|",
+"Costco|2025-11-16|Nov 16–22|96|12800|40695|25|13|393492|3.18|.10|AZ/CALI truck recovered; rescheduled 72hrs after RDD",
+"Kroger - PL|2025-11-16|Nov 16–22|100|11520|12981|4|4|147417.6|1.13|.09|",
+"Kroger - BR|2025-11-16|Nov 16–22|100|896|891|1|1|13088.32|.99|.07|",
+"Trader Joes|2025-11-16|Nov 16–22|100|5120|0|10|8|63795.2|0|0|Scheduled after PU date – confirmed with sales",
+"Wal-Mart|2025-11-16|Nov 16–22|100|2592|2030|36|1|17827.2|.78|.11|",
+"Costco|2025-11-23|Nov 23–29|100|11230|25235|19|10|304385.4|2.25|.08|",
+"Kroger - PL|2025-11-23|Nov 23–29|100|6624|8556|3|3|84765.12|1.29|.10|$554 broken pallets; $842 Lumper & $250 ship det; $542 Lumper",
+"Kroger - BR|2025-11-23|Nov 23–29|100|512|600|1|1|7479.04|1.17|.08|",
+"Trader Joes|2025-11-23|Nov 23–29|100|5680|0|14|12|70772.8|0|0|",
+"Wal-Mart|2025-11-23|Nov 23–29|82.98|18000|10650|47|5|123800|.59|.09|Only 3 trucks planned; couldn't stack pallets – 7 orders missed original trucks",
+"Costco|2025-11-30|Nov 30–Dec 6|93.94|14400|42413|33|15|462660|2.95|.09|$8,700 recovery – space issues; $400 increase out of CCC; $75 detention",
+"Kroger - PL|2025-11-30|Nov 30–Dec 6|100|1152|5314.5|1|1|14741.76|4.61|.36|$4,250 to help move load off Walmart day; $250 Ship DET; $602 lumper; $228 upstack",
+"Kroger - BR|2025-11-30|Nov 30–Dec 6|0|454|1011|1|1|6890.6|2.23|.15|58cs BOMIN short (couldn't find); 3.5hr ship DET; $236 Lumper",
+"Trader Joes|2025-11-30|Nov 30–Dec 6|100|19680|0|12|11|246182.4|0|0|",
+"Wal-Mart|2025-11-30|Nov 30–Dec 6|100|6000|4060|37|2|41266.67|.68|.10|",
+"Costco|2025-12-07|Dec 7–13|96.67|24850|53930|30|21|707091|2.17|.08|Tolleson PO 2601119241 – Short 150cs CTS; update not received in time",
+"Kroger - PL|2025-12-07|Dec 7–13|100|192|1055|1|1|2442.24|5.49|.43|$105 lumper",
+"Kroger - BR|2025-12-07|Dec 7–13||0|0|0|0|0|0|0|",
+"Trader Joes|2025-12-07|Dec 7–13|100|17040|0|12|9|212318.4|0|0|",
+"Wal-Mart|2025-12-07|Dec 7–13|100|12000|6290|45|3|82533.33|.52|.08|$200 ship detention – 3rd truck loading too long",
+"Costco|2025-12-14|Dec 14–20|90.32|21100|59182.57|31|20|625482|2.80|.09|",
+"Kroger - PL|2025-12-14|Dec 14–20||0|0|0|0|0|0|0|",
+"Kroger - BR|2025-12-14|Dec 14–20||0|0|0|0|0|0|0|",
+"Trader Joes|2025-12-14|Dec 14–20|100|17440|0|16|11|217302|0|0|",
+"Wal-Mart|2025-12-14|Dec 14–20|100|6000|4060|38|2|41266.67|.68|.10|",
+"Costco|2025-12-21|Dec 21–27|100|20450|47741.12|27|20|579249|2.33|.08|",
+"Kroger - PL|2025-12-21|Dec 21–27||0|0|0|0|0|0|0|",
+"Kroger - BR|2025-12-21|Dec 21–27|100|288|600|1|1|4206.96|2.08|.14|",
+"Trader Joes|2025-12-21|Dec 21–27|100|17760|0|14|11|221289.6|0|0|",
+"Wal-Mart|2025-12-21|Dec 21–27|97.83|11967|6090|46|3|82306.36|.51|.07|33cs PZT short PO 0967039164",
+"Costco|2025-12-28|Dec 28–Jan 3|84.21|27550|70502.88|38|26|829257|2.56|.09|",
+"Kroger - PL|2025-12-28|Dec 28–Jan 3||0|0|0|0|0|0|0|",
+"Kroger - BR|2025-12-28|Dec 28–Jan 3|50|219|1318|2|1|3199.04|6.02|.41|Short BOMIN – full PO slipped through; short 53cs MIN",
+"Trader Joes|2025-12-28|Dec 28–Jan 3|100|12800|0|10|7|159488|0|0|",
+"Wal-Mart|2025-12-28|Dec 28–Jan 3|100|6000|5230|36|2|41266.67|.87|.13|Missed order but Americold had extra pallet – matched",
+"Costco|2026-01-04|Jan 4–10|72.22|12200|31506|18|13|357852|2.58|.09|",
+"Kroger - PL|2026-01-04|Jan 4–10||0|0|0|0|0|0|0|",
+"Kroger - BR|2026-01-04|Jan 4–10|100|480|1200|2|2|7012|2.50|.17|",
+"Trader Joes|2026-01-04|Jan 4–10|100|31360|0|22|18|390746|0|0|",
+"Wal-Mart|2026-01-04|Jan 4–10|100|6000|4210|37|2|41266.67|.70|.10|1 truck: 3.5hr ship detention $150; x-ray issues",
+"Costco|2026-01-11|Jan 11–17|71.43|12520|36321.63|21|14|412711|2.90|.09|Mira Loma CWR shipped at 320; Fishbowl had 350; Katy VGA misentered with CTS – truck turned around",
+"Kroger - PL|2026-01-11|Jan 11–17||0|0|0|0|0|0|0|",
+"Kroger - BR|2026-01-11|Jan 11–17||0|0|0|0|0|0|0|",
+"Trader Joes|2026-01-11|Jan 11–17|100|11200|0|11|10|139552|0|0|",
+"Wal-Mart|2026-01-11|Jan 11–17|100|12000|6775|46|3|82533.33|.56|.08|Capacity pains $3,400; split increase $685 for 1 truck",
+"Costco|2026-01-18|Jan 18–24|100|8800|27921.54|18|11|297726|3.17|.09|",
+"Kroger - PL|2026-01-18|Jan 18–24||0|0|0|0|0|0|0|",
+"Kroger - BR|2026-01-18|Jan 18–24|100|432|385|1|1|6310.44|.89|.06|",
+"Trader Joes|2026-01-18|Jan 18–24|75|3342|0|4|3|41641.32|0|0|Short-shipped TJ Naz on COL 178 COL; exp date too far out",
+"Wal-Mart|2026-01-18|Jan 18–24|100|11580|6540|46|3|79644.67|.56|.08|",
+"Costco|2026-01-25|Jan 25–31|95|12555|49586.12|20|15|411810.3|3.95|.12|Multiple layovers; NJ recover truck $6,600; additional cost $3,312.50",
+"Kroger - PL|2026-01-25|Jan 25–31||0|0|0|0|0|0|0|",
+"Kroger - BR|2026-01-25|Jan 25–31|100|528|440|1|1|7712.76|.83|.06|",
+"Trader Joes|2026-01-25|Jan 25–31|100|14720|0|19|17|183411.2|0|0|",
+"Wal-Mart|2026-01-25|Jan 25–31|100|11232|6380|46|2|77251.2|.57|.08|",
+"Costco|2026-02-01|Feb 1–7|73.91|11900|42851.55|23|16|394086|3.60|.11|",
+"Kroger - PL|2026-02-01|Feb 1–7|50|2469|6978|2|2|31594.97|2.83|.22|Short 123cs VGS; $382 Lumper; $108 broken pallet; 4hrs REC DET $200",
+"Kroger - BR|2026-02-01|Feb 1–7|100|336|440|1|1|4722.91|1.31|.09|",
+"Trader Joes|2026-02-01|Feb 1–7|100|20309|0|15|12|253881.37|0|0|",
+"Wal-Mart|2026-02-01|Feb 1–7|100|6624|4360|45|2|45558.4|.66|.10|",
+"Costco|2026-02-08|Feb 8–14|62.5|16391|55882.93|24|18|436893.56|3.41|.13|",
+"Kroger - PL|2026-02-08|Feb 8–14|50|4871|5560|2|2|62332.56|1.14|.09|Short 25 CGO and no VGS/SGO sent; finished short-dated inventory",
+"Kroger - BR|2026-02-08|Feb 8–14|100|288|440|1|1|3148.61|1.53|.14|",
+"Trader Joes|2026-02-08|Feb 8–14|100|10480|0|12|10|130580.8|0|0|",
+"Wal-Mart|2026-02-08|Feb 8–14|100|7176|5360|42|2|49354.93|.75|.11|$250 + $750 layovers; Americold pushed appointments",
+"Costco|2026-02-15|Feb 15–21|82.93|16140|75344.35|41|24|543284|4.67|.14|PO 12040202176 – 93cs CWR short; CEB came back on 3 trucks for 4 POs",
+"Kroger - PL|2026-02-15|Feb 15–21||0|0|0|0|0|0|0|",
+"Kroger - BR|2026-02-15|Feb 15–21||0|0|0|0|0|0|0|",
+"Trader Joes|2026-02-15|Feb 15–21|100|9280|0|9|9|115628.8|0|0|",
+"Wal-Mart|2026-02-15|Feb 15–21|100|6564|4810|41|2|45143.73|.73|.11|$250 layover; SKUs not ready; 4hrs REC DET $200",
+"Costco|2026-02-22|Feb 22–28|77.14|12838|51440.46|35|19|297266.22|4.01|.17|Lates: 4 CWR delay; 2x driver breakdown; 2x delayed load; 24cs CEB – pallet found after truck left",
+"Kroger - PL|2026-02-22|Feb 22–28||0|0|0|0|0|0|0|",
+"Kroger - BR|2026-02-22|Feb 22–28|100|256|440|1|1|4050.62|1.72|.11|",
+"Trader Joes|2026-02-22|Feb 22–28|100|15760|0|13|12|231431|0|0|",
+"Wal-Mart|2026-02-22|Feb 22–28|100|6000|4510|31|2|52592|.75|.09|3hr ship detention $150",
+"Costco|2026-03-01|Mar 1–7|87.5|10031|43278.03|32|17|330246.72|4.31|.13|Tracy 1720105505 – 35cs CEB short",
+"Kroger - PL|2026-03-01|Mar 1–7|100|11520|10911|4|4|144288|.95|.08|$278/$542 Lumper; $48/$36 Upstack; $12 Broken Pallet; 6hrs ship det $250",
+"Kroger - BR|2026-03-01|Mar 1–7|100|96|385|1|1|1352.02|4.01|.28|",
+"Trader Joes|2026-03-01|Mar 1–7|100|9120|0|12|12|110662.08|0|0|",
+"Wal-Mart|2026-03-01|Mar 1–7|100|6000|4360|40|2|40180|.73|.11|2 days after RDD – first available delivery",
+"Costco|2026-03-08|Mar 8–14|96.3|12078|49367.12|27|19|414205.32|4.09|.12|Van Buren PO 12040220110 – 72cs CML short",
+"Kroger - PL|2026-03-08|Mar 8–14|100|5760|5902|2|2|72144|1.02|.08|$470 lumper; $180 upstack; $60 broken pallet; 3hr ship det $150; $602 Lumper",
+"Kroger - BR|2026-03-08|Mar 8–14|100|240|385|1|1|3382.56|1.60|.11|",
+"Trader Joes|2026-03-08|Mar 8–14|100|1040|0|2|2|12619.36|0|0|",
+"Wal-Mart|2026-03-08|Mar 8–14|100|6000|4810|39|2|40180|.80|.12|4hr ship detention $200; 6hr rec detention $250",
+"Costco|2026-03-15|Mar 15–21|72.73|11770|45000|22|17|365242.72|3.82|.12|Morris sent with 2 CML pallets in VGA packaging – stopped truck; first avail new DELV 3/25",
+"Kroger - PL|2026-03-15|Mar 15–21|100|2880|2860|1|1|36072|.99|.08|$530 Lumper; $220 base; $120 upstack; $120 slip sheet",
+"Kroger - BR|2026-03-15|Mar 15–21|100|384|385|1|1|5412.10|1.00|.07|",
+"Trader Joes|2026-03-15|Mar 15–21|100|17600|0|20|17|213558.4|0|0|14 orders delayed due to orzo – shipped this week",
+"Wal-Mart|2026-03-15|Mar 15–21|100|6000|4360|41|2|40180|.73|.11|",
+"Costco|2026-03-22|Mar 22–28|100|4400|24455.91|14|9|151659.36|5.56|.16|",
+"Kroger - PL|2026-03-22|Mar 22–28|100|5760|5305|2|2|72144|.92|.07|3.5hrs ship det $175; $470 lumper; $220 base; $48 cardboard; $144 upstack",
+"Kroger - BR|2026-03-22|Mar 22–28|100|224|385|1|1|3157|1.72|.12|",
+"Trader Joes|2026-03-22|Mar 22–28|100|9040|0|13|12|109691.36|0|0|",
+"Wal-Mart|2026-03-22|Mar 22–28|100|6000|4360|43|2|40180|.73|.11|",
+"Costco|2026-03-29|Mar 29–Apr 4|90|6230|32103.46|20|13|202583|5.15|.16|Tracy CEB order rejected; $1,700 cold storage city of industry",
+"Kroger - PL|2026-03-29|Mar 29–Apr 4||0|0|0|0|0|0|0|",
+"Kroger - BR|2026-03-29|Mar 29–Apr 4|100|192|385|1|1|2706|2.01|.14|",
+"Trader Joes|2026-03-29|Mar 29–Apr 4|100|5680|0|9|9|68921|0|0|",
+"Wal-Mart|2026-03-29|Mar 29–Apr 4|50|5184|4610|46|2|34716|.89|.13|$250 layover 4/3→4/4; BM had 8am not 3am on accident",
+"Costco|2026-04-05|Apr 5–11|100|4090|16888.75|15|8|132887|4.13|.13|",
+"Kroger - PL|2026-04-05|Apr 5–11|100|2134|2870|1|1|26728|1.34|.11|",
+"Kroger - BR|2026-04-05|Apr 5–11|100|192|385|1|1|2706|2.01|.14|",
+"Trader Joes|2026-04-05|Apr 5–11|100|5120|0|10|10|62126|0|0|",
+"Wal-Mart|2026-04-05|Apr 5–11|100|3804|2470|44|1|25474|.65|.10|",
+"Costco|2026-04-12|Apr 12–18|100|1650|7175|8|3|53443|4.35|.13|",
+"Kroger - PL|2026-04-12|Apr 12–18||0|0|0|0|0|0|0|",
+"Kroger - BR|2026-04-12|Apr 12–18|100|176|660|1|1|2481|3.75|.27|",
+"Trader Joes|2026-04-12|Apr 12–18|100|10320|0|13|12|125223|0|0|",
+"Wal-Mart|2026-04-12|Apr 12–18|100|3108|2470|37|1|20813|.79|.12|",
+"Costco|2026-04-19|Apr 19–25|100|6420|20495.84|12|8|220276|3.19|.09|",
+"Kroger - PL|2026-04-19|Apr 19–25||0|0|0|0|0|0|0|",
+"Kroger - BR|2026-04-19|Apr 19–25|100|112|660|1|1|1579|5.89|.42|",
+"Trader Joes|2026-04-19|Apr 19–25|100|9760|0|13|12|118428|0|0|",
+"Wal-Mart|2026-04-19|Apr 19–25|100|6000|4940|34|2|40180|.82|.12|"
+];
+function parseRow(s){const p=s.split('|');return{c:p[0],ws:p[1],wl:p[2],otif:p[3]===''?null:+p[3],cases:+p[4],cost:+p[5],orders:+p[6],trucks:+p[7],weight:+p[8],dpc:+p[9],dpl:+p[10],n:p.slice(11).join('|')};}
+let D=D_RAW.map(parseRow);
+const CUSTS=['Costco','Kroger - PL','Kroger - BR','Trader Joes','Wal-Mart'];
+const COLORS={'Costco':'#3B82F6','Kroger - PL':'#10B981','Kroger - BR':'#06B6D4','Trader Joes':'#EF4444','Wal-Mart':'#FBBF24'};
+const wOTIF=rows=>{const e=rows.filter(r=>r.orders>0&&r.otif!=null);return e.length?e.reduce((s,r)=>s+r.otif*r.orders,0)/e.reduce((s,r)=>s+r.orders,0):null};
+const totCost=rows=>rows.reduce((s,r)=>s+r.cost,0);
+const wDPC=rows=>{const e=rows.filter(r=>r.cost>0&&r.cases>0);return e.length?totCost(e)/e.reduce((s,r)=>s+r.cases,0):0};
+const wDPL=rows=>{const e=rows.filter(r=>r.cost>0&&r.weight>0);return e.length?totCost(e)/e.reduce((s,r)=>s+r.weight,0):0};
+const fK=v=>v>=1000?`$${(v/1000).toFixed(1)}K`:`$${v.toFixed(0)}`;
+const fP=v=>v==null?'—':`${v.toFixed(1)}%`;
+const fDPC=v=>v>0?`$${v.toFixed(2)}`:'—';
+const fDPL=v=>v>0?`$${v.toFixed(3)}`:'—';
+const oClr=v=>v==null?'#475569':v>=95?'#34D399':v>=85?'#FBBF24':'#F87171';
+function buildWeeks(){const seen=new Set(),W=[];D.forEach(r=>{if(!seen.has(r.ws)){seen.add(r.ws);W.push({ws:r.ws,wl:r.wl});}});W.sort((a,b)=>a.ws.localeCompare(b.ws));return W;}
+let WEEKS=buildWeeks();
+let state={selIdx:WEEKS.length-1,active:new Set(CUSTS),tab:'overview',range:16};
+let CHARTS={};
+Chart.defaults.color='#94A3B8';Chart.defaults.font.family="'Segoe UI',system-ui,sans-serif";Chart.defaults.font.size=11;
+function cCfg(extra){return{plugins:{legend:{labels:{color:'#94A3B8',usePointStyle:true,pointStyle:'circle',padding:12}},tooltip:{backgroundColor:'#1E293B',borderColor:'#334155',borderWidth:1,padding:8,titleColor:'#94A3B8',bodyColor:'#F1F5F9'}},scales:{x:{grid:{color:'#1F2D40'},ticks:{color:'#475569',maxRotation:40,autoSkip:true,font:{size:10}}},y:{grid:{color:'#1F2D40'},ticks:{color:'#475569',font:{size:10}}}},responsive:true,maintainAspectRatio:true,...extra};}
+function spark(vals,color,w=90,h=30){const c=vals.filter(v=>v!=null);if(c.length<2)return`<svg width="${w}" height="${h}"></svg>`;const mn=Math.min(...c),mx=Math.max(...c),rng=mx-mn||1;const pts=vals.map((v,i)=>{if(v==null)return null;return`${((i/(vals.length-1))*w).toFixed(1)},${(h-1-((v-mn)/rng)*(h-2)).toFixed(1)}`;}).filter(Boolean).join(' ');return`<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="display:block"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;}
+function initWeekSel(){const sel=document.getElementById('week-sel');sel.innerHTML='';WEEKS.forEach((w,i)=>{const o=document.createElement('option');o.value=i;o.textContent=w.wl;sel.appendChild(o);});sel.value=state.selIdx;sel.onchange=()=>{state.selIdx=+sel.value;render();};document.getElementById('btn-prev').onclick=()=>{if(state.selIdx>0){state.selIdx--;sel.value=state.selIdx;render();}};document.getElementById('btn-next').onclick=()=>{if(state.selIdx<WEEKS.length-1){state.selIdx++;sel.value=state.selIdx;render();}};}
+function initPills(){document.querySelectorAll('.pill').forEach(btn=>{const c=btn.dataset.c;setPill(btn,c);btn.onclick=()=>{const n=new Set(state.active);if(n.has(c)){if(n.size>1)n.delete(c);}else n.add(c);state.active=n;document.querySelectorAll('.pill').forEach(b=>setPill(b,b.dataset.c));render();};});}
+function setPill(btn,c){const on=state.active.has(c),clr=COLORS[c];btn.style.borderColor=clr;btn.style.background=on?clr:'transparent';btn.style.color=on?'#fff':clr;}
+function initTabs(){document.querySelectorAll('.tab-btn').forEach(btn=>{btn.onclick=()=>{state.tab=btn.dataset.tab;document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));document.getElementById('tab-'+state.tab).classList.add('active');render();};});document.querySelectorAll('.range-btn').forEach(btn=>{btn.onclick=()=>{state.range=+btn.dataset.r;document.querySelectorAll('.range-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderTrends();};});}
+function renderKPIs(){const cw=WEEKS[state.selIdx],pw=state.selIdx>0?WEEKS[state.selIdx-1]:null;const cr=D.filter(r=>r.ws===cw.ws&&state.active.has(r.c));const pr=pw?D.filter(r=>r.ws===pw.ws&&state.active.has(r.c)):[];const curr={otif:wOTIF(cr),cost:totCost(cr),dpc:wDPC(cr),dpl:wDPL(cr),cases:cr.reduce((s,r)=>s+r.cases,0)};const prev=pr.length?{otif:wOTIF(pr),cost:totCost(pr),dpc:wDPC(pr),dpl:wDPL(pr),cases:pr.reduce((s,r)=>s+r.cases,0)}:null;function kpi(id,cv,pv,hb,fmt,fmtD){const el=document.getElementById(id);el.querySelector('.kpi-val').textContent=cv!=null?fmt(cv):'—';el.querySelector('.kpi-val').style.color=id==='kpi-otif'?oClr(cv):'#F8FAFC';el.querySelectorAll('.kpi-d,.kpi-p').forEach(e=>e.remove());if(cv!=null&&pv!=null){const d=cv-pv,good=hb?d>=0:d<=0;el.insertAdjacentHTML('beforeend',`<div class="kpi-d"><span style="color:${good?'#34D399':'#F87171'};font-weight:600">${d>=0?'▲':'▼'} ${fmtD(Math.abs(d))}</span><span style="color:#334155"> vs prior wk</span></div><div class="kpi-p">Prior: ${fmt(pv)}</div>`);}}
+kpi('kpi-otif',curr.otif,prev?.otif,true,fP,v=>`${v.toFixed(1)}pp`);kpi('kpi-dpc',curr.dpc,prev?.dpc,false,fDPC,v=>`$${v.toFixed(2)}`);kpi('kpi-dpl',curr.dpl,prev?.dpl,false,fDPL,v=>`$${v.toFixed(3)}`);kpi('kpi-cost',curr.cost,prev?.cost,false,fK,fK);kpi('kpi-cases',curr.cases,prev?.cases,true,v=>v.toLocaleString(),v=>v.toLocaleString());}
+function renderOverview(){const cw=WEEKS[state.selIdx],pw=state.selIdx>0?WEEKS[state.selIdx-1]:null;const cr=D.filter(r=>r.ws===cw.ws&&state.active.has(r.c));const pr=pw?D.filter(r=>r.ws===pw.ws&&state.active.has(r.c)):[];document.getElementById('ov-title').textContent=`Week of ${cw.wl} — Customer Breakdown`;document.getElementById('ov-sub').textContent=pw?`↕ vs ${pw.wl}`:'';let th=`<thead><tr>${['Customer','OT/IF %','$/Case','$/Lb','Freight Cost','Cases','Orders','Trucks','Notes'].map(h=>`<th>${h}</th>`).join('')}</tr></thead>`;let tb='<tbody>';CUSTS.filter(c=>state.active.has(c)).forEach(c=>{const r=cr.find(d=>d.c===c),p=pr.find(d=>d.c===c);if(!r||(r.cases===0&&r.cost===0&&r.orders===0))return;const od=r.otif!=null&&p?.otif!=null?r.otif-p.otif:null;const cd=p?r.cost-p.cost:null;const dd=p&&r.dpc>0&&p.dpc>0?r.dpc-p.dpc:null;const dld=p&&r.dpl>0&&p.dpl>0?r.dpl-p.dpl:null;const csd=p?r.cases-p.cases:null;const ord_d=p?r.orders-p.orders:null;const trd=p?r.trucks-p.trucks:null;const otifCell=r.orders>0?`<div class="bar-w"><div class="bar-bg"><div class="bar-fill" style="width:${r.otif??0}%;background:${oClr(r.otif)}"></div></div><span style="color:${oClr(r.otif)};font-weight:700">${fP(r.otif)}</span>${od!=null?`<span class="dtag" style="color:${od>=0?'#34D399':'#F87171'}">${od>=0?'↑':'↓'}${Math.abs(od).toFixed(1)}pp</span>`:''}</div>`:'—';const costCell=r.cost>0?`${fK(r.cost)}${cd!=null?`<span class="dtag" style="color:${cd<=0?'#34D399':'#F87171'}">${cd<=0?'↓':'↑'}${fK(Math.abs(cd))}</span>`:''}` :'—';const dpcCell=fDPC(r.dpc)+(dd!=null?`<span class="dtag" style="color:${dd<=0?'#34D399':'#F87171'}">${dd<=0?'↓':'↑'}$${Math.abs(dd).toFixed(2)}</span>`:'');const dplCell=fDPL(r.dpl)+(dld!=null?`<span class="dtag" style="color:${dld<=0?'#34D399':'#F87171'}">${dld<=0?'↓':'↑'}$${Math.abs(dld).toFixed(3)}</span>`:'');const casesCell=r.cases>0?r.cases.toLocaleString()+(csd!=null&&csd!==0?`<span class="dtag" style="color:${csd>=0?'#34D399':'#F87171'}">${csd>=0?'↑':'↓'}${Math.abs(csd).toLocaleString()}</span>`:''):'—';const ordersCell=r.orders>0?String(r.orders)+(ord_d!=null&&ord_d!==0?`<span class="dtag" style="color:${ord_d>=0?'#34D399':'#F87171'}">${ord_d>=0?'↑':'↓'}${Math.abs(ord_d)}</span>`:''):'—';const trucksCell=r.trucks>0?String(r.trucks)+(trd!=null&&trd!==0?`<span class="dtag" style="color:${trd>=0?'#34D399':'#F87171'}">${trd>=0?'↑':'↓'}${Math.abs(trd)}</span>`:''):'—';const noteCell=r.n?`<span style="color:#F87171;font-size:11px" title="${r.n.replace(/"/g,'&quot;')}">⚠️ ${r.n.slice(0,52)}${r.n.length>52?'…':''}</span>`:`<span style="color:#1F2D40">✓</span>`;tb+=`<tr><td><span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:${COLORS[c]};flex-shrink:0;display:inline-block"></span><strong>${c}</strong></span></td><td>${otifCell}</td><td style="color:#94A3B8">${dpcCell}</td><td style="color:#94A3B8">${dplCell}</td><td>${costCell}</td><td style="color:#94A3B8">${casesCell}</td><td style="color:#94A3B8">${ordersCell}</td><td style="color:#94A3B8">${trucksCell}</td><td>${noteCell}</td></tr>`;});const tot={otif:wOTIF(cr),dpc:wDPC(cr),dpl:wDPL(cr),cost:totCost(cr),cases:cr.reduce((s,r)=>s+r.cases,0),orders:cr.reduce((s,r)=>s+r.orders,0),trucks:cr.reduce((s,r)=>s+r.trucks,0)};tb+=`</tbody><tfoot><tr><td style="color:#94A3B8;font-size:10px;text-transform:uppercase">TOTAL</td><td><span style="font-weight:800;color:${oClr(tot.otif)}">${fP(tot.otif)}</span></td><td>${fDPC(tot.dpc)}</td><td>${fDPL(tot.dpl)}</td><td>${fK(tot.cost)}</td><td>${tot.cases.toLocaleString()}</td><td>${tot.orders}</td><td>${tot.trucks}</td><td></td></tr></tfoot>`;document.getElementById('ov-table').innerHTML=th+tb;const sparkWks=WEEKS.slice(Math.max(0,state.selIdx-4),state.selIdx+1);let mc='';CUSTS.filter(c=>state.active.has(c)).forEach(c=>{const r=cr.find(d=>d.c===c);if(!r||r.orders===0)return;const sv=sparkWks.map(w=>{const d=D.find(x=>x.ws===w.ws&&x.c===c);return d?.otif??null;});mc+=`<div class="mc" style="border:1px solid ${COLORS[c]}33"><div class="mc-title"><div class="mc-dot" style="background:${COLORS[c]}"></div><strong style="color:${COLORS[c]};font-size:12px">${c}</strong></div><div class="mc-grid"><div class="mc-m"><div class="mc-ml">OT/IF</div><div class="mc-mv" style="color:${oClr(r.otif)}">${fP(r.otif)}</div></div><div class="mc-m"><div class="mc-ml">$/Case</div><div class="mc-mv" style="color:#818CF8">${fDPC(r.dpc)}</div></div><div class="mc-m"><div class="mc-ml">Cases</div><div class="mc-mv" style="color:#38BDF8">${r.cases.toLocaleString()}</div></div><div class="mc-m"><div class="mc-ml">Cost</div><div class="mc-mv" style="color:#F59E0B">${r.cost>0?fK(r.cost):'—'}</div></div></div><div class="spark">${spark(sv,COLORS[c])}<div class="spark-lbl">OT/IF — 5 wk trend</div></div></div>`;});document.getElementById('mini-cards').innerHTML=mc;}
+function renderTrends(){const endIdx=state.selIdx,startIdx=Math.max(0,endIdx-state.range+1);const wks=WEEKS.slice(startIdx,endIdx+1),labels=wks.map(w=>w.wl);const ac=CUSTS.filter(c=>state.active.has(c));const getV=(key,c)=>wks.map(w=>{const r=D.find(d=>d.ws===w.ws&&d.c===c);if(!r)return null;if(key==='otif')return r.orders>0?r.otif:null;if(key==='dpc')return r.cost>0?r.dpc:null;if(key==='dpl')return r.cost>0?r.dpl:null;if(key==='cost')return r.cost>0?r.cost:null;return null;});function mkL(id,custs,key,yFmt){if(CHARTS[id])CHARTS[id].destroy();CHARTS[id]=new Chart(document.getElementById(id),{type:'line',data:{labels,datasets:custs.map(c=>({label:c,data:getV(key,c),borderColor:COLORS[c],backgroundColor:COLORS[c]+'20',borderWidth:2,pointRadius:2,pointHoverRadius:4,tension:0.3,spanGaps:true}))},options:cCfg({scales:{x:{grid:{color:'#1F2D40'},ticks:{color:'#475569',maxRotation:40,autoSkip:true,font:{size:10}}},y:{grid:{color:'#1F2D40'},ticks:{color:'#475569',callback:yFmt,font:{size:10}}}}})});}mkL('c-otif',ac,'otif',v=>`${v}%`);mkL('c-dpc',ac.filter(c=>c!=='Trader Joes'),'dpc',v=>`$${v.toFixed(2)}`);mkL('c-cost',ac,'cost',v=>fK(v));mkL('c-dpl',ac.filter(c=>c!=='Trader Joes'),'dpl',v=>`$${v.toFixed(3)}`);}
+function renderIssues(){const active=Array.from(state.active);const issues=D.filter(r=>r.n&&r.n.trim()&&active.includes(r.c)).sort((a,b)=>b.ws.localeCompare(a.ws));document.getElementById('iss-sub').textContent=`${issues.length} entries`;document.getElementById('issues-list').innerHTML=issues.map(r=>`<div class="iss-row"><div class="iss-meta"><div class="iss-c" style="color:${COLORS[r.c]}">${r.c}</div><div class="iss-wl">${r.wl}</div>${r.otif!=null&&r.otif<95?`<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:5px;background:#F87171;color:#0A0F1E;display:inline-block;margin-top:3px">${fP(r.otif)}</span>`:''}</div><div class="iss-body">${r.n}</div>${r.cost>0?`<div style="flex-shrink:0;font-size:11px;color:#F59E0B;font-weight:600;text-align:right">${fK(r.cost)}</div>`:''}</div>`).join('');}
+function splitLine(line){const out=[],chars=[...line];let cur='',inQ=false;for(const ch of chars){if(ch==='"'){inQ=!inQ;}else if(ch===','&&!inQ){out.push(cur);cur='';}else cur+=ch;}out.push(cur);return out;}
+function pNum(s){return parseFloat((s||'').replace(/[$,\s%]/g,''))||0;}
+function pOtif(s){const t=(s||'').trim();if(!t||t==='- - -')return null;return parseFloat(t.replace('%',''));}
+function toISO(s){const p=s.trim().split('/');if(p.length<3)return'';return`${p[2]}-${p[0].padStart(2,'0')}-${p[1].padStart(2,'0')}`;}
+function toWL(s,e){const M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];const[sm,sd,sy]=(s||'').trim().split('/');const[em,ed,ey]=(e||'').trim().split('/');if(!sm||!em)return s;const smn=M[+sm-1],emn=M[+em-1];if(sm===em&&sy===ey)return`${smn} ${+sd}–${+ed}`;return`${smn} ${+sd}–${emn} ${+ed}`;}
+function applyCSV(){const text=document.getElementById('upd-ta').value.trim();const msg=document.getElementById('upd-msg');if(!text){msg.style.color='#F87171';msg.textContent='⚠️ No data pasted.';return;}const lines=text.split('\n');const newD=[];let start=lines[0].toLowerCase().includes('status')?1:0;for(let i=start;i<lines.length;i++){const c=splitLine(lines[i].trim());if(c.length<10)continue;if(c[0].trim()!=='Done')continue;let cust=c[3].trim();if(cust==='Kroger')cust='Kroger - BR';const ws=toISO(c[1]);if(!ws)continue;const wl=toWL(c[1],c[2]);const cases=pNum(c[8]),otif=pOtif(c[9]),cost=pNum(c[10]),wt=pNum(c[11]);const dpc=pNum(c[12]),dpl=pNum(c[13]);const n=(c[14]||'').trim().replace(/[\r\n]+/g,' ').replace(/\s+/g,' ');newD.push({c:cust,ws,wl,otif,cases,cost,orders:+c[4]||0,trucks:+c[5]||0,weight:wt,dpc,dpl,n});}if(newD.length<5){msg.style.color='#F87171';msg.textContent=`⚠️ Only ${newD.length} rows parsed — check format.`;return;}D=newD;WEEKS=buildWeeks();state.selIdx=WEEKS.length-1;initWeekSel();hideModal();msg.style.color='#34D399';msg.textContent=`✓ Loaded ${newD.length} rows across ${WEEKS.length} weeks.`;render();}
+function showModal(){document.getElementById('upd-modal').classList.add('show');}
+function hideModal(){document.getElementById('upd-modal').classList.remove('show');}
+document.getElementById('upd-modal').addEventListener('click',e=>{if(e.target===document.getElementById('upd-modal'))hideModal();});
+function render(){renderKPIs();document.getElementById('btn-prev').disabled=state.selIdx===0;document.getElementById('btn-next').disabled=state.selIdx===WEEKS.length-1;if(state.tab==='overview')renderOverview();else if(state.tab==='trends')renderTrends();else if(state.tab==='issues')renderIssues();}
+window.addEventListener('DOMContentLoaded',()=>{initWeekSel();initPills();initTabs();render();});
+</script>
+</body>
+</html>
